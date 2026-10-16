@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Sandev - Mind Control</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- HEADER CON MENÚ HAMBURGUESA Y LOGO HOME -->
+    <header class="app-header">
+      <button class="menu-hamburger" onclick="toggleSideMenu()">☰</button>
+      <h2 class="logo-neon" onclick="irAInicio()">SANDEV</h2>
+      <div style="width: 28px;"></div> <!-- Espaciador para centrar el logo -->
+    </header>
+
+    <!-- MENÚ LATERAL DESPLEGABLE (DRAWER) -->
+    <div id="sideMenu" class="side-menu">
+      <div class="side-menu-header">
+        <h3>MENÚ</h3>
+        <span class="close-btn" onclick="toggleSideMenu()">&times;</span>
+      </div>
+      <ul class="menu-list">
+        <li onclick="irAInicio(); toggleSideMenu();">🏠 Libreta Principal</li>
+        <li onclick="abrirHistorial(); toggleSideMenu();">📜 Historial Mensual</li>
+        <li onclick="abrirModalInsignias(); toggleSideMenu();">🏅 Ver Rangos / Badges</li>
+      </ul>
+    </div>
+    <div id="overlayMenu" class="overlay" onclick="toggleSideMenu()"></div>
+
+    <!-- PANTALLA PRINCIPAL (HOME / LIBRETA) -->
+    <main id="viewHome" class="view-section active">
+      
+      <!-- RANK CARD & STREAK -->
+      <section class="rank-card">
+        <div class="avatar-container">
+          <img id="avatarImg" src="../assets/average.png" onerror="this.src='https://i.ibb.co/65x323/average.png'" alt="Badge Avatar">
+        </div>
+        <h3 id="rankTitle" class="text-neon">Average</h3>
+        <p class="rank-subtitle">Current Badge</p>
+
+        <div class="streak-circle">
+          <div class="streak-info">
+            <span id="streakDays" class="days-num">7</span>
+            <span class="days-label">Días Limpios</span>
+            <span id="streakTimer" class="timer-text">00:00:00</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- BOTÓN ÚNICO REGISTRAR EVENTO -->
+      <section class="action-buttons">
+        <button class="btn-action btn-main" onclick="abrirSelectorRegistro()">+ Registrar Evento</button>
+      </section>
+
+      <!-- GRILLA DIARIA LIBRETA -->
+      <div class="section-title">
+        <span>📓 Libreta Octubre 2026</span>
+        <button class="btn-mini-stats" onclick="abrirEstadisticasModal()">📊 Ver Tortas</button>
+      </div>
+
+      <div class="grid-diaria" id="gridDiaria"></div>
+    </main>
+
+    <!-- PANTALLA HISTORIAL -->
+    <main id="viewHistorial" class="view-section">
+      <div class="section-title">
+        <h3>📜 Historial por Meses</h3>
+      </div>
+      
+      <div class="selector-mes">
+        <label>Seleccionar Mes:</label>
+        <select id="selectMesHistorial" onchange="cargarMesHistorial()">
+          <option value="10-2026">Octubre 2026 (Actual)</option>
+          <option value="09-2026">Septiembre 2026</option>
+        </select>
+      </div>
+
+      <div class="historial-summary border-neon">
+        <p>🚨 Recaídas con Eyaculación: <strong id="histTotalEyac">3</strong></p>
+        <p>⚠️ Eventos de Peeking: <strong id="histTotalPeeking">0</strong></p>
+        <p>⏱️ Horas en Porno: <strong id="histHorasPorno">3.0 hrs</strong></p>
+        <p>🛡️ Tiempo Limpio: <strong id="histPctLimpio">99.4%</strong></p>
+      </div>
+
+      <div class="chart-box" style="margin-top: 10px;">
+        <h4>🎯 Detonantes del Mes</h4>
+        <canvas id="chartHistorialTriggers"></canvas>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- MODAL SELECTOR TIPO DE REGISTRO -->
+  <div id="modalSelector" class="modal">
+    <div class="modal-content border-neon">
+      <span class="close-btn" onclick="cerrarSelector()">&times;</span>
+      <h3>¿Qué deseas registrar?</h3>
+      <div class="selector-options">
+        <button class="btn-action btn-danger" onclick="prepararFormulario('RECAIDA')">❌ Recaída Completa (Porno + Eyaculación)</button>
+        <button class="btn-action btn-warning" onclick="prepararFormulario('PEEKING')">⚠️ Peeking (Solo Porno sin eyacular)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL FORMULARIO CON HORA INICIO Y FIN -->
+  <div id="modalFormulario" class="modal">
+    <div class="modal-content border-neon">
+      <span class="close-btn" onclick="cerrarFormulario()">&times;</span>
+      <h3 id="formTitle">Nuevo Registro</h3>
+      <form id="formRegistro" onsubmit="guardarRegistro(event)">
+        <input type="hidden" id="tipoRegistro">
+        
+        <div class="form-row">
+          <div>
+            <label>Hora Inicio:</label>
+            <input type="time" id="horaInicio" required>
+          </div>
+          <div>
+            <label>Hora Fin:</label>
+            <input type="time" id="horaFin" required>
+          </div>
+        </div>
+
+        <label>Disparador / Trigger:</label>
+        <select id="disparadorInput" required>
+          <option value="Instagram">Instagram</option>
+          <option value="Aburrimiento">Aburrimiento</option>
+          <option value="Estrés / Cansancio">Estrés / Cansancio</option>
+          <option value="X (Twitter) / TikTok">X (Twitter) / TikTok</option>
+          <option value="Otro">Otro</option>
+        </select>
+
+        <label>¿Qué pasó antes? (Notas):</label>
+        <textarea id="notasInput" rows="2" placeholder="Ej: Volví de entrenar y abrí IG..." required></textarea>
+
+        <button type="submit" class="btn-submit">Guardar Evento</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL GRÁFICOS DE TORTA -->
+  <div id="modalStats" class="modal">
+    <div class="modal-content border-neon" style="width: 360px;">
+      <span class="close-btn" onclick="cerrarEstadisticasModal()">&times;</span>
+      <h3>📊 Estadísticas Semanales</h3>
+      <div class="charts-scroll" style="margin-top: 10px;">
+        <div class="chart-box">
+          <h4>⏱️ Horas Limpias vs Porno</h4>
+          <canvas id="chartHoras"></canvas>
+          <div id="summaryHoras" class="stats-detail"></div>
+        </div>
+        <div class="chart-box">
+          <h4>🎯 Detonantes / Triggers (% Culpa)</h4>
+          <canvas id="chartTriggers"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL INSIGNIAS -->
+  <div id="modalInsignias" class="modal">
+    <div class="modal-content border-neon">
+      <span class="close-btn" onclick="cerrarModalInsignias()">&times;</span>
+      <h3>All Badges</h3>
+      <div class="badges-list" id="badgesList"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
