@@ -1,4 +1,3 @@
-// LISTA DE INSIGNIAS Y RANGOS
 const BADGES = [
   { nombre: 'Clown', dias: 0, img: '../assets/clown.png', fallback: 'https://i.ibb.co/3kW2T3p/clown.png' },
   { nombre: 'Noob', dias: 1, img: '../assets/noob.png', fallback: 'https://i.ibb.co/vH1j3lW/noob.png' },
@@ -9,23 +8,34 @@ const BADGES = [
   { nombre: 'Giga Chad', dias: 120, img: '../assets/gigachad.png', fallback: 'https://i.ibb.co/8321019/gigachad.png' }
 ];
 
-const DIA_ACTUAL = 16;
-let rachaDias = 0;
-let segundosTimer = 0;
+// FECHA DINÁMICA DEL SISTEMA
+const hoyFecha = new Date();
+const DIA_ACTUAL = hoyFecha.getDate(); // Detecta 17 automáticamente hoy
 
-// DATOS REALES DE OCTUBRE DE NAHUEL
-let diasDelMes = Array.from({length: 31}, (_, i) => {
-  const num = i + 1;
-  const diaStr = String(num).padStart(2, '0');
-  return { diaNum: num, fecha: `${diaStr}/10`, estado: 'LIMPIO', horaInicio: '', horaFin: '', duracionMin: 0, disparador: '', notas: '' };
-});
+function obtenerDatosBase() {
+  const guardado = localStorage.getItem('SANDEV_OCTUBRE_2026');
+  if (guardado) return JSON.parse(guardado);
 
-// Cargar registros exactos
-diasDelMes[0] = { diaNum: 1, fecha: '01/10', estado: 'RECAIDA', horaInicio: '15:00', horaFin: '16:00', duracionMin: 60, disparador: 'Paja', notas: 'Recaída 01/10' };
-diasDelMes[1] = { diaNum: 2, fecha: '02/10', estado: 'RECAIDA', horaInicio: '14:00', horaFin: '15:00', duracionMin: 60, disparador: 'Paja', notas: 'Recaída 02/10' };
-diasDelMes[8] = { diaNum: 9, fecha: '09/10', estado: 'RECAIDA', horaInicio: '15:00', horaFin: '18:00', duracionMin: 180, disparador: 'Porno 3hs', notas: 'Recaída 3 horas porno' };
+  let arrayInicial = Array.from({length: 31}, (_, i) => {
+    const num = i + 1;
+    const diaStr = String(num).padStart(2, '0');
+    return { diaNum: num, fecha: `${diaStr}/10`, estado: 'LIMPIO', horaInicio: '', horaFin: '', duracionMin: 0, disparador: '', notas: '' };
+  });
 
-// MENÚ Y NAVEGACIÓN
+  arrayInicial[0] = { diaNum: 1, fecha: '01/10', estado: 'RECAIDA', horaInicio: '15:00', horaFin: '16:00', duracionMin: 60, disparador: 'Instagram', notas: 'Recaída 01/10' };
+  arrayInicial[1] = { diaNum: 2, fecha: '02/10', estado: 'RECAIDA', horaInicio: '14:00', horaFin: '15:00', duracionMin: 60, disparador: 'Aburrimiento', notas: 'Recaída 02/10' };
+  arrayInicial[8] = { diaNum: 9, fecha: '09/10', estado: 'RECAIDA', horaInicio: '15:00', horaFin: '18:00', duracionMin: 180, disparador: 'Instagram', notas: 'Recaída 3 horas porno' };
+
+  localStorage.setItem('SANDEV_OCTUBRE_2026', JSON.stringify(arrayInicial));
+  return arrayInicial;
+}
+
+let diasDelMes = obtenerDatosBase();
+
+function guardarEnLocalStorage() {
+  localStorage.setItem('SANDEV_OCTUBRE_2026', JSON.stringify(diasDelMes));
+}
+
 function toggleSideMenu() {
   document.getElementById('sideMenu').classList.toggle('active');
   document.getElementById('overlayMenu').classList.toggle('active');
@@ -42,7 +52,7 @@ function abrirHistorial() {
   cargarMesHistorial();
 }
 
-// CÁLCULO DE RACHA
+// CÁLCULO DE RACHA HASTA HOY
 function calcularRacha() {
   let contador = 0;
   for (let i = DIA_ACTUAL - 1; i >= 0; i--) {
@@ -52,16 +62,15 @@ function calcularRacha() {
       break;
     }
   }
-  rachaDias = contador;
-  actualizarUIInsignia();
+  actualizarUIInsignia(contador);
 }
 
-function actualizarUIInsignia() {
-  document.getElementById('streakDays').innerText = rachaDias;
+function actualizarUIInsignia(racha) {
+  document.getElementById('streakDays').innerText = racha;
   
   let currentBadge = BADGES[0];
   BADGES.forEach(b => {
-    if (rachaDias >= b.dias) currentBadge = b;
+    if (racha >= b.dias) currentBadge = b;
   });
 
   document.getElementById('rankTitle').innerText = currentBadge.nombre;
@@ -94,13 +103,8 @@ function cargarGrilla() {
   });
 }
 
-// MANEJO DE REGISTROS CON HORARIO INICIO/FIN
-function abrirSelectorRegistro() {
-  document.getElementById('modalSelector').style.display = 'flex';
-}
-function cerrarSelector() {
-  document.getElementById('modalSelector').style.display = 'none';
-}
+function abrirSelectorRegistro() { document.getElementById('modalSelector').style.display = 'flex'; }
+function cerrarSelector() { document.getElementById('modalSelector').style.display = 'none'; }
 
 function prepararFormulario(tipo) {
   cerrarSelector();
@@ -108,9 +112,7 @@ function prepararFormulario(tipo) {
   document.getElementById('formTitle').innerText = tipo === 'RECAIDA' ? '❌ Registrar Recaída Completa' : '⚠️ Registrar Peeking (Porno)';
   document.getElementById('modalFormulario').style.display = 'flex';
 }
-function cerrarFormulario() {
-  document.getElementById('modalFormulario').style.display = 'none';
-}
+function cerrarFormulario() { document.getElementById('modalFormulario').style.display = 'none'; }
 
 function guardarRegistro(e) {
   e.preventDefault();
@@ -120,7 +122,6 @@ function guardarRegistro(e) {
   const disparador = document.getElementById('disparadorInput').value;
   const notas = document.getElementById('notasInput').value;
 
-  // Calcular minutos
   const [h1, m1] = hInicio.split(':').map(Number);
   const [h2, m2] = hFin.split(':').map(Number);
   let duracion = (h2 * 60 + m2) - (h1 * 60 + m1);
@@ -134,29 +135,23 @@ function guardarRegistro(e) {
   hoyObj.disparador = disparador;
   hoyObj.notas = notas;
 
-  segundosTimer = 0;
+  // Guardar marca de tiempo del reset de racha
+  localStorage.setItem('SANDEV_LAST_RESET', Date.now());
+
+  guardarEnLocalStorage();
   calcularRacha();
   cargarGrilla();
   cerrarFormulario();
 }
 
-// MODALES AUXILIARES
 function abrirEstadisticasModal() {
   document.getElementById('modalStats').style.display = 'flex';
   renderizarGraficos();
 }
-function cerrarEstadisticasModal() {
-  document.getElementById('modalStats').style.display = 'none';
-}
+function cerrarEstadisticasModal() { document.getElementById('modalStats').style.display = 'none'; }
+function abrirModalInsignias() { document.getElementById('modalInsignias').style.display = 'flex'; }
+function cerrarModalInsignias() { document.getElementById('modalInsignias').style.display = 'none'; }
 
-function abrirModalInsignias() {
-  document.getElementById('modalInsignias').style.display = 'flex';
-}
-function cerrarModalInsignias() {
-  document.getElementById('modalInsignias').style.display = 'none';
-}
-
-// GRÁFICOS Y TORTAS
 let chartHorasInst = null, chartTriggersInst = null, chartHistTrigInst = null;
 
 function renderizarGraficos() {
@@ -190,16 +185,17 @@ function renderizarGraficos() {
     options: { plugins: { legend: { labels: { color: '#ffffff', font: { size: 10 } } } } }
   });
 
-  const labelsTrig = Object.keys(conteoTriggers).length ? Object.keys(conteoTriggers) : ['Sin Recaídas'];
-  const dataTrig = Object.keys(conteoTriggers).length ? Object.values(conteoTriggers) : [1];
-
   const ctxT = document.getElementById('chartTriggers').getContext('2d');
   if(chartTriggersInst) chartTriggersInst.destroy();
+  
+  const labelsTrig = Object.keys(conteoTriggers);
+  const dataTrig = Object.values(conteoTriggers);
+
   chartTriggersInst = new Chart(ctxT, {
     type: 'pie',
     data: {
-      labels: labelsTrig,
-      datasets: [{ data: dataTrig, backgroundColor: ['#ff1744', '#ffc107', '#00e5ff', '#ab47bc'] }]
+      labels: labelsTrig.length ? labelsTrig : ['Sin Recaídas'],
+      datasets: [{ data: dataTrig.length ? dataTrig : [1], backgroundColor: ['#ff1744', '#ffc107', '#00e5ff', '#ab47bc', '#e040fb'] }]
     },
     options: { plugins: { legend: { labels: { color: '#ffffff', font: { size: 10 } } } } }
   });
@@ -209,7 +205,15 @@ function cargarMesHistorial() {
   let eyac = 0, peeking = 0, minPorno = 0;
   let triggers = {};
 
+  const gridContainer = document.getElementById('heatmapGrid');
+  gridContainer.innerHTML = '';
+
   diasDelMes.forEach(d => {
+    const block = document.createElement('div');
+    block.className = `block-day ${d.estado.toLowerCase()}`;
+    block.innerText = d.diaNum;
+    gridContainer.appendChild(block);
+
     if(d.estado === 'RECAIDA') eyac++;
     if(d.estado === 'PEEKING') peeking++;
     if(d.estado !== 'LIMPIO') {
@@ -219,7 +223,7 @@ function cargarMesHistorial() {
   });
 
   const hrsPorno = (minPorno / 60).toFixed(1);
-  const hrsTotalesMes = 744; // 31 días * 24 hs
+  const hrsTotalesMes = 744;
   const pctLimpio = (((hrsTotalesMes - hrsPorno) / hrsTotalesMes) * 100).toFixed(1);
 
   document.getElementById('histTotalEyac').innerText = eyac;
@@ -232,8 +236,8 @@ function cargarMesHistorial() {
   chartHistTrigInst = new Chart(ctxHT, {
     type: 'pie',
     data: {
-      labels: Object.keys(triggers).length ? Object.keys(triggers) : ['Sin Recaídas'],
-      datasets: [{ data: Object.keys(triggers).length ? Object.values(triggers) : [1], backgroundColor: ['#ff1744', '#ffc107', '#00e5ff'] }]
+      labels: Object.keys(triggers).length ? Object.keys(triggers) : ['100% Limpio'],
+      datasets: [{ data: Object.keys(triggers).length ? Object.values(triggers) : [1], backgroundColor: ['#ff1744', '#ffc107', '#00e5ff', '#ab47bc'] }]
     },
     options: { plugins: { legend: { labels: { color: '#ffffff', font: { size: 10 } } } } }
   });
@@ -250,15 +254,24 @@ function renderizarListaInsignias(activeName) {
   });
 }
 
-// TEMPORIZADOR EN VIVO
+// TEMPORIZADOR EN VIVO PERSISTENTE
+let lastReset = localStorage.getItem('SANDEV_LAST_RESET');
+if (!lastReset) {
+  // Marca inicial por defecto (09/10/2026 a las 18:00 hs)
+  lastReset = new Date(2026, 9, 9, 18, 0, 0).getTime();
+  localStorage.setItem('SANDEV_LAST_RESET', lastReset);
+}
+
 setInterval(() => {
-  segundosTimer++;
-  const hrs = String(Math.floor(segundosTimer / 3600)).padStart(2, '0');
-  const mins = String(Math.floor((segundosTimer % 3600) / 60)).padStart(2, '0');
-  const secs = String(segundosTimer % 60).padStart(2, '0');
+  const ahora = Date.now();
+  const difSegundos = Math.floor((ahora - lastReset) / 1000);
+
+  const hrs = String(Math.floor(difSegundos / 3600)).padStart(2, '0');
+  const mins = String(Math.floor((difSegundos % 3600) / 60)).padStart(2, '0');
+  const secs = String(difSegundos % 60).padStart(2, '0');
   document.getElementById('streakTimer').innerText = `${hrs}:${mins}:${secs}`;
 }, 1000);
 
-// INICIALIZAR
+// INICIALIZACIÓN
 calcularRacha();
 cargarGrilla();

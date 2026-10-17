@@ -10,14 +10,14 @@
 
   <div class="app-container">
     
-    <!-- HEADER CON MENÚ HAMBURGUESA Y LOGO HOME -->
+    <!-- HEADER -->
     <header class="app-header">
       <button class="menu-hamburger" onclick="toggleSideMenu()">☰</button>
       <h2 class="logo-neon" onclick="irAInicio()">SANDEV</h2>
-      <div style="width: 28px;"></div> <!-- Espaciador para centrar el logo -->
+      <div style="width: 28px;"></div>
     </header>
 
-    <!-- MENÚ LATERAL DESPLEGABLE (DRAWER) -->
+    <!-- MENÚ LATERAL DRAWER -->
     <div id="sideMenu" class="side-menu">
       <div class="side-menu-header">
         <h3>MENÚ</h3>
@@ -31,70 +31,86 @@
     </div>
     <div id="overlayMenu" class="overlay" onclick="toggleSideMenu()"></div>
 
-    <!-- PANTALLA PRINCIPAL (HOME / LIBRETA) -->
+    <!-- PANTALLA PRINCIPAL EN 2 COLUMNAS PARA PC -->
     <main id="viewHome" class="view-section active">
-      
-      <!-- RANK CARD & STREAK -->
-      <section class="rank-card">
-        <div class="avatar-container">
-          <img id="avatarImg" src="../assets/average.png" onerror="this.src='https://i.ibb.co/65x323/average.png'" alt="Badge Avatar">
-        </div>
-        <h3 id="rankTitle" class="text-neon">Average</h3>
-        <p class="rank-subtitle">Current Badge</p>
-
-        <div class="streak-circle">
-          <div class="streak-info">
-            <span id="streakDays" class="days-num">7</span>
-            <span class="days-label">Días Limpios</span>
-            <span id="streakTimer" class="timer-text">00:00:00</span>
+      <div class="desktop-layout">
+        
+        <!-- COLUMNA IZQUIERDA: LIBRETA -->
+        <div class="col-main">
+          <div class="section-title">
+            <span id="tituloMesActual">📓 Libreta Octubre 2026</span>
+            <button class="btn-mini-stats" onclick="abrirEstadisticasModal()">📊 Ver Tortas</button>
           </div>
+          <div class="grid-diaria" id="gridDiaria"></div>
         </div>
-      </section>
 
-      <!-- BOTÓN ÚNICO REGISTRAR EVENTO -->
-      <section class="action-buttons">
-        <button class="btn-action btn-main" onclick="abrirSelectorRegistro()">+ Registrar Evento</button>
-      </section>
+        <!-- COLUMNA DERECHA: DISCIPLINA Y ACCIÓN -->
+        <div class="col-side">
+          <section class="rank-card">
+            <div class="avatar-container">
+              <img id="avatarImg" src="../assets/average.png" onerror="this.src='https://i.ibb.co/65x323/average.png'" alt="Badge Avatar">
+            </div>
+            <h3 id="rankTitle" class="text-neon">Average</h3>
+            <p class="rank-subtitle">Current Badge</p>
 
-      <!-- GRILLA DIARIA LIBRETA -->
-      <div class="section-title">
-        <span>📓 Libreta Octubre 2026</span>
-        <button class="btn-mini-stats" onclick="abrirEstadisticasModal()">📊 Ver Tortas</button>
+            <div class="streak-circle">
+              <div class="streak-info">
+                <span id="streakDays" class="days-num">0</span>
+                <span class="days-label">Días Limpios</span>
+                <span id="streakTimer" class="timer-text">00:00:00</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="action-buttons">
+            <button class="btn-main" onclick="abrirSelectorRegistro()">+ Registrar Evento</button>
+          </section>
+        </div>
+
       </div>
-
-      <div class="grid-diaria" id="gridDiaria"></div>
     </main>
 
-    <!-- PANTALLA HISTORIAL -->
+    <!-- PANTALLA HISTORIAL CON SCROLL -->
     <main id="viewHistorial" class="view-section">
-      <div class="section-title">
-        <h3>📜 Historial por Meses</h3>
-      </div>
-      
-      <div class="selector-mes">
-        <label>Seleccionar Mes:</label>
-        <select id="selectMesHistorial" onchange="cargarMesHistorial()">
-          <option value="10-2026">Octubre 2026 (Actual)</option>
-          <option value="09-2026">Septiembre 2026</option>
-        </select>
-      </div>
+      <div class="historial-scroll-container">
+        <div class="section-title">
+          <h3>📜 Historial Mensual</h3>
+        </div>
+        
+        <div class="selector-mes">
+          <label>Seleccionar Mes a Consultar:</label>
+          <select id="selectMesHistorial" onchange="cargarMesHistorial()">
+            <option value="10-2026">Octubre 2026</option>
+            <option value="09-2026">Septiembre 2026</option>
+          </select>
+        </div>
 
-      <div class="historial-summary border-neon">
-        <p>🚨 Recaídas con Eyaculación: <strong id="histTotalEyac">3</strong></p>
-        <p>⚠️ Eventos de Peeking: <strong id="histTotalPeeking">0</strong></p>
-        <p>⏱️ Horas en Porno: <strong id="histHorasPorno">3.0 hrs</strong></p>
-        <p>🛡️ Tiempo Limpio: <strong id="histPctLimpio">99.4%</strong></p>
-      </div>
+        <div class="heatmap-box border-neon">
+          <div class="heatmap-header">
+            <span>🟩 Limpio</span>
+            <span>🟥 Recaída</span>
+            <span>🟨 Peeking</span>
+          </div>
+          <div class="heatmap-grid" id="heatmapGrid"></div>
+        </div>
 
-      <div class="chart-box" style="margin-top: 10px;">
-        <h4>🎯 Detonantes del Mes</h4>
-        <canvas id="chartHistorialTriggers"></canvas>
+        <div class="historial-summary border-neon">
+          <p>🚨 Recaídas Eyaculación: <strong id="histTotalEyac">0</strong></p>
+          <p>⚠️ Eventos de Peeking: <strong id="histTotalPeeking">0</strong></p>
+          <p>⏱️ Tiempo en Porno: <strong id="histHorasPorno">0.0 hrs</strong></p>
+          <p>🛡️ Tiempo Limpio: <strong id="histPctLimpio">100%</strong></p>
+        </div>
+
+        <div class="chart-box" style="margin-top: 12px; margin-bottom: 20px;">
+          <h4>🎯 Detonantes del Mes Selected</h4>
+          <canvas id="chartHistorialTriggers"></canvas>
+        </div>
       </div>
     </main>
 
   </div>
 
-  <!-- MODAL SELECTOR TIPO DE REGISTRO -->
+  <!-- MODAL SELECTOR REGISTRO -->
   <div id="modalSelector" class="modal">
     <div class="modal-content border-neon">
       <span class="close-btn" onclick="cerrarSelector()">&times;</span>
@@ -106,7 +122,7 @@
     </div>
   </div>
 
-  <!-- MODAL FORMULARIO CON HORA INICIO Y FIN -->
+  <!-- MODAL FORMULARIO -->
   <div id="modalFormulario" class="modal">
     <div class="modal-content border-neon">
       <span class="close-btn" onclick="cerrarFormulario()">&times;</span>
@@ -142,7 +158,7 @@
     </div>
   </div>
 
-  <!-- MODAL GRÁFICOS DE TORTA -->
+  <!-- MODAL STATS -->
   <div id="modalStats" class="modal">
     <div class="modal-content border-neon" style="width: 360px;">
       <span class="close-btn" onclick="cerrarEstadisticasModal()">&times;</span>
