@@ -43,14 +43,23 @@ function toggleSideMenu() {
 }
 
 function irAInicio() {
+  ocultarTodasLasVistas();
   document.getElementById('viewHome').classList.add('active');
-  document.getElementById('viewHistorial').classList.remove('active');
 }
 
 function abrirHistorial() {
-  document.getElementById('viewHome').classList.remove('active');
+  ocultarTodasLasVistas();
   document.getElementById('viewHistorial').classList.add('active');
   cargarMesHistorial();
+}
+
+function abrirMeditacion() {
+  ocultarTodasLasVistas();
+  document.getElementById('viewMeditacion').classList.add('active');
+}
+
+function ocultarTodasLasVistas() {
+  document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
 }
 
 function calcularRacha() {
@@ -304,10 +313,16 @@ function renderizarListaInsignias(activeName) {
   });
 }
 
+// TEMPORIZADOR EN VIVO CORREGIDO
 setInterval(() => {
-  const lastReset = localStorage.getItem('SANDEV_LAST_RESET_TIME') || Date.now();
+  let lastReset = localStorage.getItem('SANDEV_LAST_RESET_TIME');
+  if (!lastReset) {
+    lastReset = new Date(2026, 9, 17, 15, 50, 0).getTime();
+    localStorage.setItem('SANDEV_LAST_RESET_TIME', lastReset);
+  }
+
   const ahora = Date.now();
-  let difSegundos = Math.floor((ahora - lastReset) / 1000);
+  let difSegundos = Math.floor((ahora - parseInt(lastReset)) / 1000);
   if (difSegundos < 0) difSegundos = 0;
 
   const hrs = String(Math.floor(difSegundos / 3600)).padStart(2, '0');
@@ -316,6 +331,61 @@ setInterval(() => {
   document.getElementById('streakTimer').innerText = `${hrs}:${mins}:${secs}`;
 }, 1000);
 
+// --- MÓDULO DE MEDITACIÓN CON SONIDO ---
+let medInterval = null;
+let medSegundosRestantes = 0;
+
+function iniciarMeditacion() {
+  const mins = parseInt(document.getElementById('medTiempo').value) || 5;
+  medSegundosRestantes = mins * 60;
+  
+  document.getElementById('btnStartMed').style.display = 'none';
+  document.getElementById('btnStopMed').style.display = 'block';
+  
+  actualizarDisplayMeditacion();
+
+  if(medInterval) clearInterval(medInterval);
+
+  medInterval = setInterval(() => {
+    medSegundosRestantes--;
+    actualizarDisplayMeditacion();
+
+    if (medSegundosRestantes <= 0) {
+      clearInterval(medInterval);
+      reproducirSonidoFinal();
+      alert('🧘‍♂️ ¡Meditación completada! Excelente trabajo manteniendo la mente en calma.');
+      detenerMeditacion();
+    }
+  }, 1000);
+}
+
+function detenerMeditacion() {
+  if(medInterval) clearInterval(medInterval);
+  document.getElementById('btnStartMed').style.display = 'block';
+  document.getElementById('btnStopMed').style.display = 'none';
+  document.getElementById('medTimerDisplay').innerText = '00:00';
+}
+
+function actualizarDisplayMeditacion() {
+  const m = String(Math.floor(medSegundosRestantes / 60)).padStart(2, '0');
+  const s = String(medSegundosRestantes % 60).padStart(2, '0');
+  document.getElementById('medTimerDisplay').innerText = `${m}:${s}`;
+}
+
+function reproducirSonidoFinal() {
+  const sonidoSel = document.getElementById('medSonido').value;
+  let audioUrl = 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3';
+
+  if(sonidoSel === 'campana') {
+    audioUrl = 'https://assets.mixkit.co/active_storage/sfx/2874/2874-preview.mp3';
+  } else if(sonidoSel === 'naturaleza') {
+    audioUrl = 'https://assets.mixkit.co/active_storage/sfx/2432/2432-preview.mp3';
+  }
+
+  const audio = new Audio(audioUrl);
+  audio.play();
+}
+
 // INICIALIZACIÓN
 calcularRacha();
-cargarGrilla(); 
+cargarGrilla();

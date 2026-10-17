@@ -26,6 +26,7 @@
       <ul class="menu-list">
         <li onclick="irAInicio(); toggleSideMenu();">🏠 Libreta Principal</li>
         <li onclick="abrirHistorial(); toggleSideMenu();">📜 Historial Mensual</li>
+        <li onclick="abrirMeditacion(); toggleSideMenu();">🧘‍♂️ Meditación</li>
         <li onclick="abrirModalInsignias(); toggleSideMenu();">🏅 Ver Rangos / Badges</li>
       </ul>
     </div>
@@ -113,6 +114,37 @@
             </div>
           </div>
         </div>
+      </div>
+    </main>
+
+    <!-- PANTALLA MEDITACIÓN -->
+    <main id="viewMeditacion" class="view-section">
+      <div class="section-title">
+        <h3>🧘‍♂️ Módulo de Meditación</h3>
+      </div>
+
+      <div class="meditacion-card border-neon">
+        <div class="streak-circle" style="width: 160px; height: 160px; margin-bottom: 20px;">
+          <span id="medTimerDisplay" class="days-num" style="font-size: 38px;">00:00</span>
+        </div>
+
+        <div class="form-row" style="margin-top: 20px; width: 100%;">
+          <div>
+            <label>Duración (minutos):</label>
+            <input type="number" id="medTiempo" value="5" min="1" max="60">
+          </div>
+          <div>
+            <label>Sonido de Fin:</label>
+            <select id="medSonido">
+              <option value="cuenco">🔔 Cuenco Tibetano</option>
+              <option value="campana">🛎️ Campana Zen</option>
+              <option value="naturaleza">🌿 Sonido Suave</option>
+            </select>
+          </div>
+        </div>
+
+        <button id="btnStartMed" class="btn-main" style="margin-top: 20px;" onclick="iniciarMeditacion()">▶️ Iniciar Meditación</button>
+        <button id="btnStopMed" class="btn-action btn-danger" style="margin-top: 20px; display: none; width: 100%;" onclick="detenerMeditacion()">⏹️ Detener</button>
       </div>
     </main>
 
