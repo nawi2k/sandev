@@ -8,11 +8,10 @@ const BADGES = [
   { nombre: 'Giga Chad', dias: 120, img: '../assets/gigachad.png', fallback: 'https://i.ibb.co/8321019/gigachad.png' }
 ];
 
-const hoyFecha = new Date();
-const DIA_ACTUAL = 17; // Registrado hoy 17/10
+const DIA_ACTUAL = 17;
 
 function obtenerDatosBase() {
-  const guardado = localStorage.getItem('SANDEV_OCTUBRE_2026_V2');
+  const guardado = localStorage.getItem('SANDEV_OCTUBRE_2026_V3');
   if (guardado) return JSON.parse(guardado);
 
   let arrayInicial = Array.from({length: 31}, (_, i) => {
@@ -21,7 +20,6 @@ function obtenerDatosBase() {
     return { diaNum: num, fecha: `${diaStr}/10`, estado: 'LIMPIO', horaInicio: '', horaFin: '', duracionMin: 0, disparador: '', notas: '', numRecaida: null };
   });
 
-  // Datos reales del cuaderno de Nahuel
   arrayInicial[0] = { diaNum: 1, fecha: '01/10', estado: 'RECAIDA', horaInicio: '15:00', horaFin: '16:00', duracionMin: 60, disparador: 'Instagram', notas: 'Recaída 01/10', numRecaida: 1 };
   arrayInicial[1] = { diaNum: 2, fecha: '02/10', estado: 'RECAIDA', horaInicio: '14:00', horaFin: '15:00', duracionMin: 60, disparador: 'Aburrimiento', notas: 'Recaída 02/10', numRecaida: 2 };
   arrayInicial[8] = { diaNum: 9, fecha: '09/10', estado: 'RECAIDA', horaInicio: '15:00', horaFin: '18:00', duracionMin: 180, disparador: 'Instagram', notas: 'Recaída 3 horas porno', numRecaida: 3 };
@@ -29,18 +27,14 @@ function obtenerDatosBase() {
   arrayInicial[15] = { diaNum: 16, fecha: '16/10', estado: 'PEEKING', horaInicio: '23:00', horaFin: '23:45', duracionMin: 45, disparador: 'Instagram', notas: 'Peeking sin eyacular', numRecaida: null };
   arrayInicial[16] = { diaNum: 17, fecha: '17/10', estado: 'RECAIDA', horaInicio: '14:40', horaFin: '15:50', duracionMin: 70, disparador: 'Instagram', notas: 'Recaída hoy 17/10', numRecaida: 4 };
 
-  // Guardar timestamp exacto del reset de hoy (17/10 a las 15:50 hs)
-  const lastResetTime = new Date(2026, 9, 17, 15, 50, 0).getTime();
-  localStorage.setItem('SANDEV_LAST_RESET_TIME', lastResetTime);
-
-  localStorage.setItem('SANDEV_OCTUBRE_2026_V2', JSON.stringify(arrayInicial));
+  localStorage.setItem('SANDEV_OCTUBRE_2026_V3', JSON.stringify(arrayInicial));
   return arrayInicial;
 }
 
 let diasDelMes = obtenerDatosBase();
 
 function guardarEnLocalStorage() {
-  localStorage.setItem('SANDEV_OCTUBRE_2026_V2', JSON.stringify(diasDelMes));
+  localStorage.setItem('SANDEV_OCTUBRE_2026_V3', JSON.stringify(diasDelMes));
 }
 
 function toggleSideMenu() {
@@ -102,11 +96,11 @@ function cargarGrilla() {
     if(item.estado === 'PEEKING') tag = `⚠️ Peeking (${item.horaInicio} - ${item.horaFin})`;
 
     row.innerHTML = `
-      <span><strong>${item.fecha}</strong> ${esHoy ? '<small style="color:#00e5ff;">(HOY)</small>' : ''}</span>
-      <span>
-        ${tag} ${item.disparador ? `<small>- ${item.disparador}</small>` : ''}
+      <div class="row-left-group">
+        <strong>${item.fecha}</strong> ${esHoy ? '<small style="color:#00e5ff;">(HOY)</small>' : ''}
         ${item.numRecaida ? `<span class="num-badge">${item.numRecaida}</span>` : ''}
-      </span>
+      </div>
+      <span>${tag} ${item.disparador ? `<small>- ${item.disparador}</small>` : ''}</span>
     `;
     container.appendChild(row);
   });
@@ -136,7 +130,6 @@ function guardarRegistro(e) {
   let duracion = (h2 * 60 + m2) - (h1 * 60 + m1);
   if (duracion < 0) duracion += 1440;
 
-  // Contar número de recaídas previas
   let totalEyac = 1;
   diasDelMes.forEach(d => { if (d.estado === 'RECAIDA') totalEyac++; });
 
@@ -149,7 +142,6 @@ function guardarRegistro(e) {
   hoyObj.notas = notas;
   if (tipo === 'RECAIDA') hoyObj.numRecaida = totalEyac;
 
-  // Resetear timestamp de racha al momento exacto de fin de recaída
   const ahora = new Date();
   const resetDate = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), h2, m2, 0).getTime();
   localStorage.setItem('SANDEV_LAST_RESET_TIME', resetDate);
@@ -198,7 +190,21 @@ function renderizarGraficos() {
       labels: [`Horas Limpias (${horasLimpias}h)`, `Horas en Porno (${horasPorno}h)`],
       datasets: [{ data: [horasLimpias, horasPorno], backgroundColor: ['#00e5ff', '#ff1744'] }]
     },
-    options: { plugins: { legend: { labels: { color: '#ffffff', font: { size: 10 } } } } }
+    options: {
+      plugins: {
+        legend: { labels: { color: '#ffffff', font: { size: 10 } } },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              let total = context.dataset.data.reduce((a, b) => a + b, 0);
+              let val = context.raw;
+              let percentage = ((val / total) * 100).toFixed(1);
+              return `${context.label}: ${percentage}%`;
+            }
+          }
+        }
+      }
+    }
   });
 
   const ctxT = document.getElementById('chartTriggers').getContext('2d');
@@ -213,7 +219,21 @@ function renderizarGraficos() {
       labels: labelsTrig.length ? labelsTrig : ['Sin Recaídas'],
       datasets: [{ data: dataTrig.length ? dataTrig : [1], backgroundColor: ['#ff1744', '#ffc107', '#00e5ff', '#ab47bc', '#e040fb'] }]
     },
-    options: { plugins: { legend: { labels: { color: '#ffffff', font: { size: 10 } } } } }
+    options: {
+      plugins: {
+        legend: { labels: { color: '#ffffff', font: { size: 10 } } },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              let total = context.dataset.data.reduce((a, b) => a + b, 0);
+              let val = context.raw;
+              let percentage = ((val / total) * 100).toFixed(1);
+              return `${context.label}: ${percentage}% de culpa`;
+            }
+          }
+        }
+      }
+    }
   });
 }
 
@@ -255,7 +275,21 @@ function cargarMesHistorial() {
       labels: Object.keys(triggers).length ? Object.keys(triggers) : ['100% Limpio'],
       datasets: [{ data: Object.keys(triggers).length ? Object.values(triggers) : [1], backgroundColor: ['#ff1744', '#ffc107', '#00e5ff', '#ab47bc'] }]
     },
-    options: { plugins: { legend: { labels: { color: '#ffffff', font: { size: 10 } } } } }
+    options: {
+      plugins: {
+        legend: { labels: { color: '#ffffff', font: { size: 10 } } },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              let total = context.dataset.data.reduce((a, b) => a + b, 0);
+              let val = context.raw;
+              let percentage = ((val / total) * 100).toFixed(1);
+              return `${context.label}: ${percentage}%`;
+            }
+          }
+        }
+      }
+    }
   });
 }
 
@@ -270,7 +304,6 @@ function renderizarListaInsignias(activeName) {
   });
 }
 
-// TEMPORIZADOR EN VIVO CORREGIDO
 setInterval(() => {
   const lastReset = localStorage.getItem('SANDEV_LAST_RESET_TIME') || Date.now();
   const ahora = Date.now();
@@ -279,10 +312,10 @@ setInterval(() => {
 
   const hrs = String(Math.floor(difSegundos / 3600)).padStart(2, '0');
   const mins = String(Math.floor((difSegundos % 3600) / 60)).padStart(2, '0');
-  const secs = String(segundosTimer % 60).padStart(2, '0');
+  const secs = String(difSegundos % 60).padStart(2, '0');
   document.getElementById('streakTimer').innerText = `${hrs}:${mins}:${secs}`;
 }, 1000);
 
 // INICIALIZACIÓN
 calcularRacha();
-cargarGrilla();
+cargarGrilla(); 
