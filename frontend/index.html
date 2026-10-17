@@ -31,26 +31,17 @@
     </div>
     <div id="overlayMenu" class="overlay" onclick="toggleSideMenu()"></div>
 
-    <!-- PANTALLA PRINCIPAL EN 2 COLUMNAS PARA PC -->
+    <!-- PANTALLA PRINCIPAL EN 2 COLUMNAS (INVERTIDAS) -->
     <main id="viewHome" class="view-section active">
       <div class="desktop-layout">
         
-        <!-- COLUMNA IZQUIERDA: LIBRETA -->
-        <div class="col-main">
-          <div class="section-title">
-            <span id="tituloMesActual">📓 Libreta Octubre 2026</span>
-            <button class="btn-mini-stats" onclick="abrirEstadisticasModal()">📊 Ver Tortas</button>
-          </div>
-          <div class="grid-diaria" id="gridDiaria"></div>
-        </div>
-
-        <!-- COLUMNA DERECHA: DISCIPLINA Y ACCIÓN -->
+        <!-- COLUMNA IZQUIERDA: DISCIPLINA Y ACCIÓN -->
         <div class="col-side">
           <section class="rank-card">
             <div class="avatar-container">
-              <img id="avatarImg" src="../assets/average.png" onerror="this.src='https://i.ibb.co/65x323/average.png'" alt="Badge Avatar">
+              <img id="avatarImg" src="../assets/clown.png" onerror="this.src='https://i.ibb.co/3kW2T3p/clown.png'" alt="Badge Avatar">
             </div>
-            <h3 id="rankTitle" class="text-neon">Average</h3>
+            <h3 id="rankTitle" class="text-neon">Clown</h3>
             <p class="rank-subtitle">Current Badge</p>
 
             <div class="streak-circle">
@@ -67,10 +58,19 @@
           </section>
         </div>
 
+        <!-- COLUMNA DERECHA: LIBRETA -->
+        <div class="col-main">
+          <div class="section-title">
+            <span id="tituloMesActual">📓 Libreta Octubre 2026</span>
+            <button class="btn-mini-stats" onclick="abrirEstadisticasModal()">📊 Ver Tortas</button>
+          </div>
+          <div class="grid-diaria" id="gridDiaria"></div>
+        </div>
+
       </div>
     </main>
 
-    <!-- PANTALLA HISTORIAL CON SCROLL -->
+    <!-- PANTALLA HISTORIAL -->
     <main id="viewHistorial" class="view-section">
       <div class="historial-scroll-container">
         <div class="section-title">
@@ -88,7 +88,7 @@
         <div class="heatmap-box border-neon">
           <div class="heatmap-header">
             <span>🟩 Limpio</span>
-            <span>🟥 Recaída</span>
+            <span>ff Recaída</span>
             <span>🟨 Peeking</span>
           </div>
           <div class="heatmap-grid" id="heatmapGrid"></div>
@@ -158,12 +158,12 @@
     </div>
   </div>
 
-  <!-- MODAL STATS -->
+  <!-- MODAL STATS APAISADO / HORIZONTAL -->
   <div id="modalStats" class="modal">
-    <div class="modal-content border-neon" style="width: 360px;">
+    <div class="modal-content border-neon modal-wide">
       <span class="close-btn" onclick="cerrarEstadisticasModal()">&times;</span>
       <h3>📊 Estadísticas Semanales</h3>
-      <div class="charts-scroll" style="margin-top: 10px;">
+      <div class="charts-horizontal" style="margin-top: 14px;">
         <div class="chart-box">
           <h4>⏱️ Horas Limpias vs Porno</h4>
           <canvas id="chartHoras"></canvas>

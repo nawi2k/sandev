@@ -8,32 +8,39 @@ const BADGES = [
   { nombre: 'Giga Chad', dias: 120, img: '../assets/gigachad.png', fallback: 'https://i.ibb.co/8321019/gigachad.png' }
 ];
 
-// FECHA DINÁMICA DEL SISTEMA
 const hoyFecha = new Date();
-const DIA_ACTUAL = hoyFecha.getDate(); // Detecta 17 automáticamente hoy
+const DIA_ACTUAL = 17; // Registrado hoy 17/10
 
 function obtenerDatosBase() {
-  const guardado = localStorage.getItem('SANDEV_OCTUBRE_2026');
+  const guardado = localStorage.getItem('SANDEV_OCTUBRE_2026_V2');
   if (guardado) return JSON.parse(guardado);
 
   let arrayInicial = Array.from({length: 31}, (_, i) => {
     const num = i + 1;
     const diaStr = String(num).padStart(2, '0');
-    return { diaNum: num, fecha: `${diaStr}/10`, estado: 'LIMPIO', horaInicio: '', horaFin: '', duracionMin: 0, disparador: '', notas: '' };
+    return { diaNum: num, fecha: `${diaStr}/10`, estado: 'LIMPIO', horaInicio: '', horaFin: '', duracionMin: 0, disparador: '', notas: '', numRecaida: null };
   });
 
-  arrayInicial[0] = { diaNum: 1, fecha: '01/10', estado: 'RECAIDA', horaInicio: '15:00', horaFin: '16:00', duracionMin: 60, disparador: 'Instagram', notas: 'Recaída 01/10' };
-  arrayInicial[1] = { diaNum: 2, fecha: '02/10', estado: 'RECAIDA', horaInicio: '14:00', horaFin: '15:00', duracionMin: 60, disparador: 'Aburrimiento', notas: 'Recaída 02/10' };
-  arrayInicial[8] = { diaNum: 9, fecha: '09/10', estado: 'RECAIDA', horaInicio: '15:00', horaFin: '18:00', duracionMin: 180, disparador: 'Instagram', notas: 'Recaída 3 horas porno' };
+  // Datos reales del cuaderno de Nahuel
+  arrayInicial[0] = { diaNum: 1, fecha: '01/10', estado: 'RECAIDA', horaInicio: '15:00', horaFin: '16:00', duracionMin: 60, disparador: 'Instagram', notas: 'Recaída 01/10', numRecaida: 1 };
+  arrayInicial[1] = { diaNum: 2, fecha: '02/10', estado: 'RECAIDA', horaInicio: '14:00', horaFin: '15:00', duracionMin: 60, disparador: 'Aburrimiento', notas: 'Recaída 02/10', numRecaida: 2 };
+  arrayInicial[8] = { diaNum: 9, fecha: '09/10', estado: 'RECAIDA', horaInicio: '15:00', horaFin: '18:00', duracionMin: 180, disparador: 'Instagram', notas: 'Recaída 3 horas porno', numRecaida: 3 };
+  arrayInicial[14] = { diaNum: 15, fecha: '15/10', estado: 'PEEKING', horaInicio: '22:00', horaFin: '22:30', duracionMin: 30, disparador: 'TikTok', notas: 'Peeking sin eyacular', numRecaida: null };
+  arrayInicial[15] = { diaNum: 16, fecha: '16/10', estado: 'PEEKING', horaInicio: '23:00', horaFin: '23:45', duracionMin: 45, disparador: 'Instagram', notas: 'Peeking sin eyacular', numRecaida: null };
+  arrayInicial[16] = { diaNum: 17, fecha: '17/10', estado: 'RECAIDA', horaInicio: '14:40', horaFin: '15:50', duracionMin: 70, disparador: 'Instagram', notas: 'Recaída hoy 17/10', numRecaida: 4 };
 
-  localStorage.setItem('SANDEV_OCTUBRE_2026', JSON.stringify(arrayInicial));
+  // Guardar timestamp exacto del reset de hoy (17/10 a las 15:50 hs)
+  const lastResetTime = new Date(2026, 9, 17, 15, 50, 0).getTime();
+  localStorage.setItem('SANDEV_LAST_RESET_TIME', lastResetTime);
+
+  localStorage.setItem('SANDEV_OCTUBRE_2026_V2', JSON.stringify(arrayInicial));
   return arrayInicial;
 }
 
 let diasDelMes = obtenerDatosBase();
 
 function guardarEnLocalStorage() {
-  localStorage.setItem('SANDEV_OCTUBRE_2026', JSON.stringify(diasDelMes));
+  localStorage.setItem('SANDEV_OCTUBRE_2026_V2', JSON.stringify(diasDelMes));
 }
 
 function toggleSideMenu() {
@@ -52,7 +59,6 @@ function abrirHistorial() {
   cargarMesHistorial();
 }
 
-// CÁLCULO DE RACHA HASTA HOY
 function calcularRacha() {
   let contador = 0;
   for (let i = DIA_ACTUAL - 1; i >= 0; i--) {
@@ -97,7 +103,10 @@ function cargarGrilla() {
 
     row.innerHTML = `
       <span><strong>${item.fecha}</strong> ${esHoy ? '<small style="color:#00e5ff;">(HOY)</small>' : ''}</span>
-      <span>${tag} ${item.disparador ? `<small>- ${item.disparador}</small>` : ''}</span>
+      <span>
+        ${tag} ${item.disparador ? `<small>- ${item.disparador}</small>` : ''}
+        ${item.numRecaida ? `<span class="num-badge">${item.numRecaida}</span>` : ''}
+      </span>
     `;
     container.appendChild(row);
   });
@@ -127,6 +136,10 @@ function guardarRegistro(e) {
   let duracion = (h2 * 60 + m2) - (h1 * 60 + m1);
   if (duracion < 0) duracion += 1440;
 
+  // Contar número de recaídas previas
+  let totalEyac = 1;
+  diasDelMes.forEach(d => { if (d.estado === 'RECAIDA') totalEyac++; });
+
   const hoyObj = diasDelMes[DIA_ACTUAL - 1];
   hoyObj.estado = tipo;
   hoyObj.horaInicio = hInicio;
@@ -134,9 +147,12 @@ function guardarRegistro(e) {
   hoyObj.duracionMin = duracion;
   hoyObj.disparador = disparador;
   hoyObj.notas = notas;
+  if (tipo === 'RECAIDA') hoyObj.numRecaida = totalEyac;
 
-  // Guardar marca de tiempo del reset de racha
-  localStorage.setItem('SANDEV_LAST_RESET', Date.now());
+  // Resetear timestamp de racha al momento exacto de fin de recaída
+  const ahora = new Date();
+  const resetDate = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), h2, m2, 0).getTime();
+  localStorage.setItem('SANDEV_LAST_RESET_TIME', resetDate);
 
   guardarEnLocalStorage();
   calcularRacha();
@@ -254,21 +270,16 @@ function renderizarListaInsignias(activeName) {
   });
 }
 
-// TEMPORIZADOR EN VIVO PERSISTENTE
-let lastReset = localStorage.getItem('SANDEV_LAST_RESET');
-if (!lastReset) {
-  // Marca inicial por defecto (09/10/2026 a las 18:00 hs)
-  lastReset = new Date(2026, 9, 9, 18, 0, 0).getTime();
-  localStorage.setItem('SANDEV_LAST_RESET', lastReset);
-}
-
+// TEMPORIZADOR EN VIVO CORREGIDO
 setInterval(() => {
+  const lastReset = localStorage.getItem('SANDEV_LAST_RESET_TIME') || Date.now();
   const ahora = Date.now();
-  const difSegundos = Math.floor((ahora - lastReset) / 1000);
+  let difSegundos = Math.floor((ahora - lastReset) / 1000);
+  if (difSegundos < 0) difSegundos = 0;
 
   const hrs = String(Math.floor(difSegundos / 3600)).padStart(2, '0');
   const mins = String(Math.floor((difSegundos % 3600) / 60)).padStart(2, '0');
-  const secs = String(difSegundos % 60).padStart(2, '0');
+  const secs = String(segundosTimer % 60).padStart(2, '0');
   document.getElementById('streakTimer').innerText = `${hrs}:${mins}:${secs}`;
 }, 1000);
 

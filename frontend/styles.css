@@ -5,9 +5,8 @@ body {
   display: flex; justify-content: center; align-items: center; min-height: 100vh;
 }
 
-/* LAYOUT MÁS ANCHO Y COMPACTO PARA PC (780px) */
 .app-container {
-  width: 780px; height: 680px; background-color: #0d0f12;
+  width: 820px; height: 680px; background-color: #0d0f12;
   border-radius: 18px; padding: 18px; display: flex; flex-direction: column;
   box-shadow: 0 0 30px rgba(0, 229, 255, 0.2); border: 1px solid #1a2634;
   position: relative; overflow: hidden;
@@ -48,12 +47,11 @@ body {
 .view-section { display: none; height: 100%; flex-direction: column; overflow: hidden; }
 .view-section.active { display: flex; }
 
-/* ESTRUCTURA DESKTOP 2 COLUMNAS */
+/* ESTRUCTURA DESKTOP 2 COLUMNAS (IZQ DERECHA) */
 .desktop-layout { display: flex; gap: 18px; height: 100%; }
-.col-main { flex: 1.2; display: flex; flex-direction: column; }
-.col-side { flex: 0.8; display: flex; flex-direction: column; }
+.col-side { flex: 0.85; display: flex; flex-direction: column; }
+.col-main { flex: 1.15; display: flex; flex-direction: column; }
 
-/* RANK CARD CON AVATAR MÁS GRANDE */
 .rank-card {
   background: #12161f; border-radius: 14px; padding: 14px; text-align: center;
   margin-bottom: 12px; border: 1px solid #1e293b;
@@ -96,7 +94,7 @@ body {
   padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer;
 }
 
-/* GRILLA LIBRETA COMPACTA CON SCROLL */
+/* GRILLA LIBRETA */
 .grid-diaria {
   display: flex; flex-direction: column; gap: 6px; height: 490px;
   overflow-y: auto; padding-right: 4px;
@@ -104,7 +102,7 @@ body {
 .row-dia {
   display: flex; justify-content: space-between; align-items: center;
   padding: 8px 10px; background: #12161f; border-radius: 8px; font-size: 12px;
-  border-left: 4px solid #334155;
+  border-left: 4px solid #334155; position: relative;
 }
 .row-dia.limpio { border-left-color: #00e5ff; }
 .row-dia.recaida { border-left-color: #ff1744; }
@@ -114,7 +112,15 @@ body {
   border-left: 6px solid #00e5ff !important; box-shadow: 0 0 10px rgba(0,229,255,0.3);
 }
 
-/* SCROLLCONTAINER PARA PESTAÑA HISTORIAL */
+/* CÍRCULO CON NÚMERO DE RECAÍDA (ESTILO CUADERNO) */
+.num-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%; background: #ff1744;
+  color: white; font-weight: bold; font-size: 11px; margin-left: 6px;
+  box-shadow: 0 0 6px rgba(255,23,68,0.6);
+}
+
+/* SCROLLCONTAINER HISTORIAL */
 .historial-scroll-container {
   height: 580px; overflow-y: auto; padding-right: 6px; display: flex; flex-direction: column; gap: 10px;
 }
@@ -140,7 +146,7 @@ body {
   display: flex; flex-direction: column; gap: 6px; border: 1px solid #00e5ff;
 }
 
-/* MODALES */
+/* MODALES HORIZONTALES APAISADOS */
 .modal {
   display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 300;
@@ -149,6 +155,11 @@ body {
   background: #0d0f12; padding: 20px; border-radius: 12px; width: 340px;
   color: white; border: 1px solid #00e5ff; box-shadow: 0 0 15px rgba(0,229,255,0.3);
 }
+.modal-wide { width: 680px !important; }
+
+.charts-horizontal { display: flex; gap: 16px; }
+.charts-horizontal .chart-box { flex: 1; }
+
 .close-btn { float: right; cursor: pointer; font-size: 20px; color: #00e5ff; }
 
 .selector-options { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
