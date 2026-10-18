@@ -13,7 +13,7 @@ body {
 }
 
 .app-header {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
 }
 
 .logo-neon {
@@ -53,12 +53,12 @@ body {
 .col-main { flex: 1.15; display: flex; flex-direction: column; }
 
 .rank-card {
-  background: #12161f; border-radius: 14px; padding: 14px; text-align: center;
-  margin-bottom: 12px; border: 1px solid #1e293b;
+  background: #12161f; border-radius: 14px; padding: 12px; text-align: center;
+  margin-bottom: 10px; border: 1px solid #1e293b;
 }
 
 .avatar-container {
-  width: 95px; height: 95px; margin: 0 auto 6px auto;
+  width: 90px; height: 90px; margin: 0 auto 4px auto;
 }
 .avatar-container img {
   width: 100%; height: 100%; border-radius: 50%; border: 3px solid #00e5ff;
@@ -68,22 +68,42 @@ body {
 .text-neon { color: #00e5ff; text-shadow: 0 0 8px rgba(0,229,255,0.6); }
 .rank-subtitle { font-size: 11px; color: #64748b; }
 
+/* BARRA DE EXPERIENCIA (XP) */
+.xp-bar-container {
+  width: 100%; height: 8px; background: #1a2332; border-radius: 6px;
+  overflow: hidden; margin-top: 6px; border: 1px solid #334155;
+}
+.xp-bar-fill {
+  width: 0%; height: 100%; background: linear-gradient(90deg, #00e5ff, #e040fb);
+  transition: width 0.4s ease;
+}
+.xp-text { font-size: 10px; color: #00e5ff; font-weight: bold; margin-top: 2px; display: block; }
+
 .streak-circle {
-  width: 130px; height: 130px; border-radius: 50%; border: 4px solid #00e5ff;
-  box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); margin: 8px auto 0 auto;
+  width: 120px; height: 120px; border-radius: 50%; border: 4px solid #00e5ff;
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); margin: 6px auto 0 auto;
   display: flex; align-items: center; justify-content: center;
 }
 
-.days-num { font-size: 34px; font-weight: bold; color: #ffffff; }
+.days-num { font-size: 32px; font-weight: bold; color: #ffffff; }
 .days-label { font-size: 11px; color: #94a3b8; display: block; }
 .timer-text { font-size: 11px; color: #00e5ff; font-family: monospace; }
 
+.action-buttons { display: flex; flex-direction: column; gap: 8px; }
+
 .btn-main {
-  width: 100%; padding: 12px; background: #00e5ff; color: #08080a;
+  width: 100%; padding: 10px; background: #00e5ff; color: #08080a;
   border: none; border-radius: 10px; font-weight: bold; cursor: pointer;
-  box-shadow: 0 0 12px rgba(0,229,255,0.4); transition: 0.2s; font-size: 14px;
+  box-shadow: 0 0 12px rgba(0,229,255,0.4); transition: 0.2s; font-size: 13px;
 }
 .btn-main:hover { box-shadow: 0 0 20px #00e5ff; }
+
+.btn-sos {
+  width: 100%; padding: 10px; background: #ff1744; color: #ffffff;
+  border: none; border-radius: 10px; font-weight: bold; cursor: pointer;
+  box-shadow: 0 0 12px rgba(255,23,68,0.5); transition: 0.2s; font-size: 12px;
+}
+.btn-sos:hover { box-shadow: 0 0 20px #ff1744; }
 
 .section-title {
   display: flex; justify-content: space-between; align-items: center;
@@ -114,7 +134,6 @@ body {
 
 .row-left-group { display: flex; align-items: center; gap: 10px; }
 
-/* CÍRCULO CON NÚMERO DE RECAÍDA EN EL MEDIO */
 .num-badge {
   display: inline-flex; align-items: center; justify-content: center;
   width: 22px; height: 22px; border-radius: 50%; background: #ff1744;
@@ -153,41 +172,47 @@ body {
 }
 .chart-wrapper { width: 100%; max-width: 280px; }
 
-/* TARJETA DE MEDITACIÓN CON ESTILO NEÓN */
-.meditacion-card {
-  background: #12161f; padding: 28px; border-radius: 14px;
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; border: 1px solid #00e5ff; margin-top: 10px;
+/* DIARIO REFLEXIVO */
+.diario-layout { display: flex; gap: 16px; height: 550px; }
+.diario-input-box { flex: 1.1; background: #12161f; padding: 16px; border-radius: 12px; }
+.diario-summary-box { flex: 0.9; background: #12161f; padding: 16px; border-radius: 12px; }
+
+.tags-selector { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.tag-chip {
+  background: #1a2332; border: 1px solid #00e5ff; color: #00e5ff;
+  padding: 4px 10px; border-radius: 20px; font-size: 11px; cursor: pointer; transition: 0.2s;
+}
+.tag-chip.active { background: #00e5ff; color: #08080a; font-weight: bold; }
+
+.patrones-list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; font-size: 12px; }
+.patron-item {
+  display: flex; justify-content: space-between; padding: 8px 12px;
+  background: #1a2332; border-radius: 8px; border-left: 3px solid #e040fb;
 }
 
-.med-controls-row {
-  display: flex; gap: 16px; width: 100%; margin-top: 15px;
+/* RESPIRACIÓN BOX BREATHING SOS */
+.modal-sos-content { text-align: center; width: 380px !important; }
+.breath-circle {
+  width: 170px; height: 170px; border-radius: 50%; margin: 20px auto;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  font-weight: bold; transition: all 1s ease-in-out; border: 5px solid #00e5ff;
 }
+.breath-circle.inhala { background: rgba(0,229,255,0.2); border-color: #00e5ff; transform: scale(1.1); }
+.breath-circle.aguanta { background: rgba(255,241,118,0.2); border-color: #fff176; transform: scale(1.1); }
+.breath-circle.exhala { background: rgba(224,64,251,0.2); border-color: #e040fb; transform: scale(0.9); }
+.breath-circle.pausa { background: rgba(105,240,174,0.2); border-color: #69f0ae; transform: scale(0.9); }
 
-.input-glow-group {
-  flex: 1; display: flex; flex-direction: column; gap: 6px;
-}
-.input-glow-group label {
-  font-size: 12px; color: #00e5ff; font-weight: 600;
-}
+#breathActionText { font-size: 20px; color: #ffffff; letter-spacing: 2px; }
+#breathTimerText { font-size: 36px; color: #ffffff; margin-top: 4px; }
+.breath-instruction { font-size: 12px; color: #94a3b8; }
 
 /* INPUTS Y SELECTS ESTILIZADOS CYBERPUNK */
 .custom-neon-input, .custom-neon-select {
-  background-color: #161c26 !important;
-  border: 1px solid #00e5ff !important;
-  color: #ffffff !important;
-  padding: 8px 12px !important;
-  border-radius: 8px !important;
-  font-size: 13px !important;
-  font-weight: bold !important;
-  outline: none !important;
+  width: 100%; background-color: #161c26 !important;
+  border: 1px solid #00e5ff !important; color: #ffffff !important;
+  padding: 8px 12px !important; border-radius: 8px !important;
+  font-size: 12px !important; outline: none !important;
   box-shadow: 0 0 8px rgba(0, 229, 255, 0.2);
-  transition: 0.2s ease-in-out;
-}
-
-.custom-neon-input:focus, .custom-neon-select:focus {
-  box-shadow: 0 0 14px #00e5ff;
-  border-color: #ffffff !important;
 }
 
 /* MODALES */
@@ -200,9 +225,6 @@ body {
   color: white; border: 1px solid #00e5ff; box-shadow: 0 0 15px rgba(0,229,255,0.3);
 }
 .modal-wide { width: 680px !important; }
-
-.charts-horizontal { display: flex; gap: 16px; }
-.charts-horizontal .chart-box { flex: 1; }
 
 .close-btn { float: right; cursor: pointer; font-size: 20px; color: #00e5ff; }
 

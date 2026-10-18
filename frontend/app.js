@@ -8,13 +8,12 @@ const BADGES = [
   { nombre: 'Giga Chad', dias: 120, img: '../assets/gigachad.png', fallback: 'https://i.ibb.co/8321019/gigachad.png' }
 ];
 
-// OBTENER DÍA REAL DINÁMICO
 function getDiaActual() {
   return new Date().getDate();
 }
 
 function obtenerDatosBase() {
-  const guardado = localStorage.getItem('SANDEV_OCTUBRE_2026_V5');
+  const guardado = localStorage.getItem('SANDEV_OCTUBRE_2026_V6');
   if (guardado) return JSON.parse(guardado);
 
   let arrayInicial = Array.from({length: 31}, (_, i) => {
@@ -30,18 +29,24 @@ function obtenerDatosBase() {
   arrayInicial[15] = { diaNum: 16, fecha: '16/10', estado: 'PEEKING', horaInicio: '23:00', horaFin: '23:45', duracionMin: 45, disparador: 'Instagram', notas: 'Peeking sin eyacular', numRecaida: null };
   arrayInicial[16] = { diaNum: 17, fecha: '17/10', estado: 'RECAIDA', horaInicio: '14:40', horaFin: '15:50', duracionMin: 70, disparador: 'Instagram', notas: 'Recaída 17/10', numRecaida: 4 };
 
-  // Guardar timestamp de la última RECAÍDA REAL (17/10 a las 15:50 hs)
   const resetFixed = new Date(2026, 9, 17, 15, 50, 0).getTime();
   localStorage.setItem('SANDEV_LAST_RESET_TIME', resetFixed);
-
-  localStorage.setItem('SANDEV_OCTUBRE_2026_V5', JSON.stringify(arrayInicial));
+  localStorage.setItem('SANDEV_OCTUBRE_2026_V6', JSON.stringify(arrayInicial));
   return arrayInicial;
 }
 
 let diasDelMes = obtenerDatosBase();
+let userXP = parseInt(localStorage.getItem('SANDEV_USER_XP')) || 120;
+let listaDiario = JSON.parse(localStorage.getItem('SANDEV_DIARIO_LOGS')) || [
+  { fecha: '16/10', texto: 'Me acosté tarde y estuve sobrepensando.', tags: ['sobrepensar', 'desvelo'] },
+  { fecha: '17/10', texto: 'Tuve ganas de ver un poco por aburrimiento.', tags: ['ganas de ver un poco', 'aburrimiento'] }
+];
+let selectedTags = [];
 
 function guardarEnLocalStorage() {
-  localStorage.setItem('SANDEV_OCTUBRE_2026_V5', JSON.stringify(diasDelMes));
+  localStorage.setItem('SANDEV_OCTUBRE_2026_V6', JSON.stringify(diasDelMes));
+  localStorage.setItem('SANDEV_USER_XP', userXP);
+  localStorage.setItem('SANDEV_DIARIO_LOGS', JSON.stringify(listaDiario));
 }
 
 function toggleSideMenu() {
@@ -66,20 +71,25 @@ function abrirMeditacion() {
   document.getElementById('viewMeditacion').classList.add('active');
 }
 
+function abrirDiario() {
+  ocultarTodasLasVistas();
+  document.getElementById('viewDiario').classList.add('active');
+  renderizarPatronesDiario();
+}
+
 function ocultarTodasLasVistas() {
   document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
 }
 
-// CÁLCULO DE RACHA CORREGIDO: SOLO RECAIDA CORTA LA RACHA
+// CÁLCULO DE RACHA Y XP
 function calcularRacha() {
   const diaHoy = getDiaActual();
   let contador = 0;
   for (let i = diaHoy - 1; i >= 0; i--) {
-    // Si el día es LIMPIO o PEEKING, la racha de días sin eyacular sigue
     if (diasDelMes[i].estado === 'LIMPIO' || diasDelMes[i].estado === 'PEEKING') {
       contador++;
     } else if (diasDelMes[i].estado === 'RECAIDA') {
-      break; // Solo RECAIDA corta la racha
+      break;
     }
   }
   actualizarUIInsignia(contador);
@@ -98,7 +108,20 @@ function actualizarUIInsignia(racha) {
   imgElem.src = currentBadge.img;
   imgElem.onerror = () => imgElem.src = currentBadge.fallback;
 
+  // Barra de XP
+  const targetXP = 300;
+  const pct = Math.min(100, (userXP / targetXP) * 100);
+  document.getElementById('xpBarFill').style.width = `${pct}%`;
+  document.getElementById('xpText').innerText = `${userXP} / ${targetXP} XP`;
+
   renderizarListaInsignias(currentBadge.nombre);
+}
+
+function sumarXP(puntos) {
+  userXP += puntos;
+  if (userXP < 0) userXP = 0;
+  guardarEnLocalStorage();
+  calcularRacha();
 }
 
 function cargarGrilla() {
@@ -135,6 +158,119 @@ function scrollToHoy() {
   if (target) {
     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
+}
+
+// MODAL Y LÓGICA DE RESPIRACIÓN SOS (BOX BREATHING)
+let sosInterval = null;
+let sosStep = 0; // 0: inhala, 1: aguanta, 2: exhala, 3: pausa
+let sosCount = 4;
+
+function abrirModalSOS() {
+  document.getElementById('modalSOS').style.display = 'flex';
+  iniciarBoxBreathing();
+}
+
+function cerrarModalSOS() {
+  document.getElementById('modalSOS').style.display = 'none';
+  if(sosInterval) clearInterval(sosInterval);
+  sumarXP(30);
+}
+
+function iniciarBoxBreathing() {
+  sosStep = 0; sosCount = 4;
+  actualizarUIBreathing();
+
+  if(sosInterval) clearInterval(sosInterval);
+  sosInterval = setInterval(() => {
+    sosCount--;
+    if(sosCount <= 0) {
+      sosStep = (sosStep + 1) % 4;
+      sosCount = 4;
+    }
+    actualizarUIBreathing();
+  }, 1000);
+}
+
+function actualizarUIBreathing() {
+  const circle = document.getElementById('sosCircle');
+  const actionTxt = document.getElementById('breathActionText');
+  const timerTxt = document.getElementById('breathTimerText');
+
+  circle.className = 'breath-circle';
+  timerTxt.innerText = sosCount;
+
+  if(sosStep === 0) {
+    circle.classList.add('inhala');
+    actionTxt.innerText = 'INHALA 🩵';
+  } else if(sosStep === 1) {
+    circle.classList.add('aguanta');
+    actionTxt.innerText = 'AGUANTA 💛';
+  } else if(sosStep === 2) {
+    circle.classList.add('exhala');
+    actionTxt.innerText = 'EXHALA 💜';
+  } else if(sosStep === 3) {
+    circle.classList.add('pausa');
+    actionTxt.innerText = 'PAUSA 💚';
+  }
+}
+
+// DIARIO INTELIGENTE
+function toggleTag(tagName) {
+  const idx = selectedTags.indexOf(tagName);
+  if(idx > -1) selectedTags.splice(idx, 1);
+  else selectedTags.push(tagName);
+
+  document.querySelectorAll('.tag-chip').forEach(chip => {
+    if(selectedTags.includes(chip.innerText.replace('#', ''))) {
+      chip.classList.add('active');
+    } else {
+      chip.classList.remove('active');
+    }
+  });
+}
+
+function guardarEntradaDiario() {
+  const txt = document.getElementById('textoDiario').value.trim();
+  if(!txt && selectedTags.length === 0) return alert('Por favor escribe algo o selecciona una etiqueta.');
+
+  const diaHoy = getDiaActual();
+  listaDiario.push({ fecha: `${String(diaHoy).padStart(2,'0')}/10`, texto: txt, tags: [...selectedTags] });
+  
+  document.getElementById('textoDiario').value = '';
+  selectedTags = [];
+  document.querySelectorAll('.tag-chip').forEach(c => c.classList.remove('active'));
+
+  sumarXP(30);
+  guardarEnLocalStorage();
+  renderizarPatronesDiario();
+  alert('Reflexión guardada (+30 XP)');
+}
+
+function renderizarPatronesDiario() {
+  const container = document.getElementById('listaPatronesRepetidos');
+  container.innerHTML = '';
+
+  let conteo = {};
+  listaDiario.forEach(log => {
+    if(log.tags) {
+      log.tags.forEach(t => {
+        conteo[t] = (conteo[t] || 0) + 1;
+      });
+    }
+  });
+
+  const keys = Object.keys(conteo);
+  if(keys.length === 0) {
+    container.innerHTML = '<p style="color:#64748b;">No hay etiquetas suficientes aún.</p>';
+    return;
+  }
+
+  keys.forEach(k => {
+    const item = document.createElement('div');
+    item.className = 'patron-item';
+    item.innerHTML = `<span>#${k}</span> <strong>${conteo[k]} veces repetido</strong>`;
+    container.appendChild(item);
+  });
 }
 
 function abrirSelectorRegistro() { document.getElementById('modalSelector').style.display = 'flex'; }
@@ -175,10 +311,12 @@ function guardarRegistro(e) {
 
   if (tipo === 'RECAIDA') {
     hoyObj.numRecaida = totalEyac;
-    // SOLO RECONECTA EL TIMER DE RESET SI HUBO EYACULACIÓN
     const ahora = new Date();
     const resetDate = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), h2, m2, 0).getTime();
     localStorage.setItem('SANDEV_LAST_RESET_TIME', resetDate);
+    sumarXP(-100);
+  } else {
+    sumarXP(-20);
   }
 
   guardarEnLocalStorage();
@@ -339,7 +477,7 @@ function renderizarListaInsignias(activeName) {
   });
 }
 
-// TEMPORIZADOR DE RACHA DESDE LA ÚLTIMA EYACULACIÓN
+// TEMPORIZADOR DE RACHA
 setInterval(() => {
   let lastReset = localStorage.getItem('SANDEV_LAST_RESET_TIME');
   if (!lastReset) {
@@ -357,7 +495,7 @@ setInterval(() => {
   document.getElementById('streakTimer').innerText = `${hrs}:${mins}:${secs}`;
 }, 1000);
 
-// MÓDULO DE MEDITACIÓN CON SONIDO
+// MÓDULO DE MEDITACIÓN
 let medInterval = null;
 let medSegundosRestantes = 0;
 
@@ -379,8 +517,9 @@ function iniciarMeditacion() {
     if (medSegundosRestantes <= 0) {
       clearInterval(medInterval);
       reproducirSonidoFinal();
+      sumarXP(50);
       setTimeout(() => {
-        alert('🧘‍♂️ ¡Meditación completada! Excelente trabajo manteniendo la mente en calma.');
+        alert('🧘‍♂️ ¡Meditación completada! (+50 XP)');
         detenerMeditacion();
       }, 300);
     }
