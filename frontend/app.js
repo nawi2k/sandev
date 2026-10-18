@@ -14,7 +14,7 @@ function getDiaActual() {
 }
 
 function obtenerDatosBase() {
-  const guardado = localStorage.getItem('SANDEV_OCTUBRE_2026_V4');
+  const guardado = localStorage.getItem('SANDEV_OCTUBRE_2026_V5');
   if (guardado) return JSON.parse(guardado);
 
   let arrayInicial = Array.from({length: 31}, (_, i) => {
@@ -28,20 +28,20 @@ function obtenerDatosBase() {
   arrayInicial[8] = { diaNum: 9, fecha: '09/10', estado: 'RECAIDA', horaInicio: '15:00', horaFin: '18:00', duracionMin: 180, disparador: 'Instagram', notas: 'Recaída 3 horas porno', numRecaida: 3 };
   arrayInicial[14] = { diaNum: 15, fecha: '15/10', estado: 'PEEKING', horaInicio: '22:00', horaFin: '22:30', duracionMin: 30, disparador: 'TikTok', notas: 'Peeking sin eyacular', numRecaida: null };
   arrayInicial[15] = { diaNum: 16, fecha: '16/10', estado: 'PEEKING', horaInicio: '23:00', horaFin: '23:45', duracionMin: 45, disparador: 'Instagram', notas: 'Peeking sin eyacular', numRecaida: null };
-  arrayInicial[16] = { diaNum: 17, fecha: '17/10', estado: 'RECAIDA', horaInicio: '14:40', horaFin: '15:50', duracionMin: 70, disparador: 'Instagram', notas: 'Recaída ayer 17/10', numRecaida: 4 };
+  arrayInicial[16] = { diaNum: 17, fecha: '17/10', estado: 'RECAIDA', horaInicio: '14:40', horaFin: '15:50', duracionMin: 70, disparador: 'Instagram', notas: 'Recaída 17/10', numRecaida: 4 };
 
-  // Guardar timestamp exacto del reset (17/10 a las 15:50 hs)
+  // Guardar timestamp de la última RECAÍDA REAL (17/10 a las 15:50 hs)
   const resetFixed = new Date(2026, 9, 17, 15, 50, 0).getTime();
   localStorage.setItem('SANDEV_LAST_RESET_TIME', resetFixed);
 
-  localStorage.setItem('SANDEV_OCTUBRE_2026_V4', JSON.stringify(arrayInicial));
+  localStorage.setItem('SANDEV_OCTUBRE_2026_V5', JSON.stringify(arrayInicial));
   return arrayInicial;
 }
 
 let diasDelMes = obtenerDatosBase();
 
 function guardarEnLocalStorage() {
-  localStorage.setItem('SANDEV_OCTUBRE_2026_V4', JSON.stringify(diasDelMes));
+  localStorage.setItem('SANDEV_OCTUBRE_2026_V5', JSON.stringify(diasDelMes));
 }
 
 function toggleSideMenu() {
@@ -70,14 +70,16 @@ function ocultarTodasLasVistas() {
   document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
 }
 
+// CÁLCULO DE RACHA CORREGIDO: SOLO RECAIDA CORTA LA RACHA
 function calcularRacha() {
   const diaHoy = getDiaActual();
   let contador = 0;
   for (let i = diaHoy - 1; i >= 0; i--) {
-    if (diasDelMes[i].estado === 'LIMPIO') {
+    // Si el día es LIMPIO o PEEKING, la racha de días sin eyacular sigue
+    if (diasDelMes[i].estado === 'LIMPIO' || diasDelMes[i].estado === 'PEEKING') {
       contador++;
-    } else {
-      break;
+    } else if (diasDelMes[i].estado === 'RECAIDA') {
+      break; // Solo RECAIDA corta la racha
     }
   }
   actualizarUIInsignia(contador);
@@ -170,11 +172,14 @@ function guardarRegistro(e) {
   hoyObj.duracionMin = duracion;
   hoyObj.disparador = disparador;
   hoyObj.notas = notas;
-  if (tipo === 'RECAIDA') hoyObj.numRecaida = totalEyac;
 
-  const ahora = new Date();
-  const resetDate = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), h2, m2, 0).getTime();
-  localStorage.setItem('SANDEV_LAST_RESET_TIME', resetDate);
+  if (tipo === 'RECAIDA') {
+    hoyObj.numRecaida = totalEyac;
+    // SOLO RECONECTA EL TIMER DE RESET SI HUBO EYACULACIÓN
+    const ahora = new Date();
+    const resetDate = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), h2, m2, 0).getTime();
+    localStorage.setItem('SANDEV_LAST_RESET_TIME', resetDate);
+  }
 
   guardarEnLocalStorage();
   calcularRacha();
@@ -334,7 +339,7 @@ function renderizarListaInsignias(activeName) {
   });
 }
 
-// TEMPORIZADOR DE RACHA CORREGIDO
+// TEMPORIZADOR DE RACHA DESDE LA ÚLTIMA EYACULACIÓN
 setInterval(() => {
   let lastReset = localStorage.getItem('SANDEV_LAST_RESET_TIME');
   if (!lastReset) {
@@ -352,7 +357,7 @@ setInterval(() => {
   document.getElementById('streakTimer').innerText = `${hrs}:${mins}:${secs}`;
 }, 1000);
 
-// --- MÓDULO DE MEDITACIÓN CON SONIDO CORREGIDO ---
+// MÓDULO DE MEDITACIÓN CON SONIDO
 let medInterval = null;
 let medSegundosRestantes = 0;
 
@@ -373,11 +378,7 @@ function iniciarMeditacion() {
 
     if (medSegundosRestantes <= 0) {
       clearInterval(medInterval);
-      
-      // REPRODUCIR SONIDO PRIMERO
       reproducirSonidoFinal();
-
-      // CARTEL LUEGO DE UN PEQUEÑO DELAY PARA QUE SUENE AL INSTANTE
       setTimeout(() => {
         alert('🧘‍♂️ ¡Meditación completada! Excelente trabajo manteniendo la mente en calma.');
         detenerMeditacion();
