@@ -13,7 +13,7 @@ function getDiaActual() {
 }
 
 function obtenerDatosBase() {
-  const guardado = localStorage.getItem('SANDEV_OCTUBRE_2026_V6');
+  const guardado = localStorage.getItem('SANDEV_OCTUBRE_2026_V7');
   if (guardado) return JSON.parse(guardado);
 
   let arrayInicial = Array.from({length: 31}, (_, i) => {
@@ -31,22 +31,24 @@ function obtenerDatosBase() {
 
   const resetFixed = new Date(2026, 9, 17, 15, 50, 0).getTime();
   localStorage.setItem('SANDEV_LAST_RESET_TIME', resetFixed);
-  localStorage.setItem('SANDEV_OCTUBRE_2026_V6', JSON.stringify(arrayInicial));
+  localStorage.setItem('SANDEV_OCTUBRE_2026_V7', JSON.stringify(arrayInicial));
   return arrayInicial;
 }
 
 let diasDelMes = obtenerDatosBase();
 let userXP = parseInt(localStorage.getItem('SANDEV_USER_XP')) || 120;
 let listaDiario = JSON.parse(localStorage.getItem('SANDEV_DIARIO_LOGS')) || [
-  { fecha: '16/10', texto: 'Me acosté tarde y estuve sobrepensando.', tags: ['sobrepensar', 'desvelo'] },
-  { fecha: '17/10', texto: 'Tuve ganas de ver un poco por aburrimiento.', tags: ['ganas de ver un poco', 'aburrimiento'] }
+  { id: 1, fecha: '16/10', texto: 'Me acosté tarde y estuve #sobrepensar bastante.', tags: ['sobrepensar', 'desvelo'] },
+  { id: 2, fecha: '17/10', texto: 'Tuve #ganas de ver un poco por #aburrimiento en la tarde.', tags: ['ganas de ver un poco', 'aburrimiento'] }
 ];
+let availableTags = JSON.parse(localStorage.getItem('SANDEV_AVAILABLE_TAGS')) || ['sobrepensar', 'ganas de ver un poco', 'aburrimiento', 'me siento mal', 'desvelo'];
 let selectedTags = [];
 
 function guardarEnLocalStorage() {
-  localStorage.setItem('SANDEV_OCTUBRE_2026_V6', JSON.stringify(diasDelMes));
+  localStorage.setItem('SANDEV_OCTUBRE_2026_V7', JSON.stringify(diasDelMes));
   localStorage.setItem('SANDEV_USER_XP', userXP);
   localStorage.setItem('SANDEV_DIARIO_LOGS', JSON.stringify(listaDiario));
+  localStorage.setItem('SANDEV_AVAILABLE_TAGS', JSON.stringify(availableTags));
 }
 
 function toggleSideMenu() {
@@ -74,6 +76,8 @@ function abrirMeditacion() {
 function abrirDiario() {
   ocultarTodasLasVistas();
   document.getElementById('viewDiario').classList.add('active');
+  renderizarTagsSelector();
+  renderizarHistorialReflexiones();
   renderizarPatronesDiario();
 }
 
@@ -81,7 +85,6 @@ function ocultarTodasLasVistas() {
   document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
 }
 
-// CÁLCULO DE RACHA Y XP
 function calcularRacha() {
   const diaHoy = getDiaActual();
   let contador = 0;
@@ -108,7 +111,6 @@ function actualizarUIInsignia(racha) {
   imgElem.src = currentBadge.img;
   imgElem.onerror = () => imgElem.src = currentBadge.fallback;
 
-  // Barra de XP
   const targetXP = 300;
   const pct = Math.min(100, (userXP / targetXP) * 100);
   document.getElementById('xpBarFill').style.width = `${pct}%`;
@@ -160,10 +162,9 @@ function scrollToHoy() {
   }
 }
 
-// MODAL Y LÓGICA DE RESPIRACIÓN SOS (BOX BREATHING)
+// RESPIRACIÓN SOS
 let sosInterval = null;
-let sosStep = 0; // 0: inhala, 1: aguanta, 2: exhala, 3: pausa
-let sosCount = 4;
+let sosStep = 0, sosCount = 4;
 
 function abrirModalSOS() {
   document.getElementById('modalSOS').style.display = 'flex';
@@ -199,51 +200,112 @@ function actualizarUIBreathing() {
   circle.className = 'breath-circle';
   timerTxt.innerText = sosCount;
 
-  if(sosStep === 0) {
-    circle.classList.add('inhala');
-    actionTxt.innerText = 'INHALA 🩵';
-  } else if(sosStep === 1) {
-    circle.classList.add('aguanta');
-    actionTxt.innerText = 'AGUANTA 💛';
-  } else if(sosStep === 2) {
-    circle.classList.add('exhala');
-    actionTxt.innerText = 'EXHALA 💜';
-  } else if(sosStep === 3) {
-    circle.classList.add('pausa');
-    actionTxt.innerText = 'PAUSA 💚';
-  }
+  if(sosStep === 0) { circle.classList.add('inhala'); actionTxt.innerText = 'INHALA 🩵'; }
+  else if(sosStep === 1) { circle.classList.add('aguanta'); actionTxt.innerText = 'AGUANTA 💛'; }
+  else if(sosStep === 2) { circle.classList.add('exhala'); actionTxt.innerText = 'EXHALA 💜'; }
+  else if(sosStep === 3) { circle.classList.add('pausa'); actionTxt.innerText = 'PAUSA 💚'; }
 }
 
-// DIARIO INTELIGENTE
+// DIARIO REFLEXIVO INTELIGENTE
+function renderizarTagsSelector() {
+  const container = document.getElementById('containerTagsSelector');
+  container.innerHTML = '';
+  availableTags.forEach(t => {
+    const chip = document.createElement('span');
+    chip.className = `tag-chip ${selectedTags.includes(t) ? 'active' : ''}`;
+    chip.innerText = `#${t}`;
+    chip.onclick = () => toggleTag(t);
+    container.appendChild(chip);
+  });
+}
+
 function toggleTag(tagName) {
   const idx = selectedTags.indexOf(tagName);
   if(idx > -1) selectedTags.splice(idx, 1);
   else selectedTags.push(tagName);
-
-  document.querySelectorAll('.tag-chip').forEach(chip => {
-    if(selectedTags.includes(chip.innerText.replace('#', ''))) {
-      chip.classList.add('active');
-    } else {
-      chip.classList.remove('active');
-    }
-  });
+  renderizarTagsSelector();
 }
 
 function guardarEntradaDiario() {
   const txt = document.getElementById('textoDiario').value.trim();
-  if(!txt && selectedTags.length === 0) return alert('Por favor escribe algo o selecciona una etiqueta.');
+  if(!txt && selectedTags.length === 0) return alert('Escribe algo o selecciona una etiqueta.');
+
+  // EXTRAER HASHTAGS AUTOMÁTICOS DEL TEXTO
+  const regexHashtags = /#([a-zA-Z0-9_áéíóúÁÉÍÓÚñÑ-]+)/g;
+  let match;
+  while ((match = regexHashtags.exec(txt)) !== null) {
+    const tagEncontrado = match[1].toLowerCase();
+    if (!selectedTags.includes(tagEncontrado)) {
+      selectedTags.push(tagEncontrado);
+    }
+    if (!availableTags.includes(tagEncontrado)) {
+      availableTags.push(tagEncontrado);
+    }
+  }
 
   const diaHoy = getDiaActual();
-  listaDiario.push({ fecha: `${String(diaHoy).padStart(2,'0')}/10`, texto: txt, tags: [...selectedTags] });
-  
+  const fechaStr = `${String(diaHoy).padStart(2,'0')}/10`;
+
+  listaDiario.unshift({
+    id: Date.now(),
+    fecha: fechaStr,
+    texto: txt,
+    tags: [...selectedTags]
+  });
+
   document.getElementById('textoDiario').value = '';
   selectedTags = [];
-  document.querySelectorAll('.tag-chip').forEach(c => c.classList.remove('active'));
 
   sumarXP(30);
   guardarEnLocalStorage();
+  renderizarTagsSelector();
+  renderizarHistorialReflexiones();
   renderizarPatronesDiario();
   alert('Reflexión guardada (+30 XP)');
+}
+
+function renderizarHistorialReflexiones() {
+  const container = document.getElementById('listaReflexionesGuardadas');
+  container.innerHTML = '';
+
+  if (listaDiario.length === 0) {
+    container.innerHTML = '<p style="color:#64748b; font-size:11px;">No hay reflexiones guardadas.</p>';
+    return;
+  }
+
+  listaDiario.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'item-reflexion-row';
+    const preview = item.texto ? (item.texto.length > 25 ? item.texto.substring(0, 25) + '...' : item.texto) : 'Sin texto';
+    
+    row.innerHTML = `
+      <span><strong>${item.fecha}</strong> - ${preview}</span>
+      <button class="btn-leer-note" onclick="verReflexionDetalle(${item.id})">👁️ Leer</button>
+    `;
+    container.appendChild(row);
+  });
+}
+
+function verReflexionDetalle(id) {
+  const item = listaDiario.find(x => x.id === id);
+  if(!item) return;
+
+  document.getElementById('modalReflexionFecha').innerText = `Reflexión del ${item.fecha}`;
+  document.getElementById('modalReflexionTexto').innerText = item.texto || 'Sin texto escrito.';
+  
+  const tagsCont = document.getElementById('modalReflexionTags');
+  tagsCont.innerHTML = '';
+  if(item.tags && item.tags.length) {
+    item.tags.forEach(t => {
+      tagsCont.innerHTML += `<span class="tag-chip active">#${t}</span>`;
+    });
+  }
+
+  document.getElementById('modalLecturaReflexion').style.display = 'flex';
+}
+
+function cerrarLecturaReflexion() {
+  document.getElementById('modalLecturaReflexion').style.display = 'none';
 }
 
 function renderizarPatronesDiario() {

@@ -154,29 +154,31 @@
       </div>
     </main>
 
-    <!-- PANTALLA DIARIO REFLEXIVO -->
+    <!-- PANTALLA DIARIO REFLEXIVO INTELIGENTE -->
     <main id="viewDiario" class="view-section">
       <div class="section-title">
         <h3>📓 Diario Reflexivo Inteligente</h3>
       </div>
 
       <div class="diario-layout">
+        <!-- LADO IZQUIERDO: ESCRIBIR + HISTORIAL DE REFLEXIONES -->
         <div class="diario-input-box border-neon">
           <label>✍️ ¿Qué pensaste o sentiste hoy?</label>
-          <textarea id="textoDiario" class="custom-neon-input" rows="4" placeholder="Ej: Me acosté tarde sobrepensando y me dieron ganas de ver un poco..."></textarea>
+          <textarea id="textoDiario" class="custom-neon-input" rows="3" placeholder="Ej: Me acosté tarde #sobrepensar y me dieron #ganas de ver un poco..."></textarea>
           
-          <label style="margin-top: 10px; display: block;">🏷️ Selecciona o identifica temas repetidos:</label>
-          <div class="tags-selector">
-            <span class="tag-chip" onclick="toggleTag('sobrepensar')">#sobrepensar</span>
-            <span class="tag-chip" onclick="toggleTag('ganas de ver un poco')">#ganas de ver un poco</span>
-            <span class="tag-chip" onclick="toggleTag('aburrimiento')">#aburrimiento</span>
-            <span class="tag-chip" onclick="toggleTag('me siento mal')">#me siento mal</span>
-            <span class="tag-chip" onclick="toggleTag('desvelo')">#desvelo</span>
-          </div>
+          <label style="margin-top: 8px; display: block;">🏷️ Selecciona o usa #hashtags en el texto:</label>
+          <div class="tags-selector" id="containerTagsSelector"></div>
 
-          <button class="btn-main" style="margin-top: 12px;" onclick="guardarEntradaDiario()">Guardar Reflexión (+30 XP)</button>
+          <button class="btn-main" style="margin-top: 10px;" onclick="guardarEntradaDiario()">Guardar Reflexión (+30 XP)</button>
+
+          <!-- SECCIÓN PARA CONSULTAR REFLEXIONES PASADAS -->
+          <div class="reflexiones-historial-sec">
+            <h4 style="color:#00e5ff; font-size: 12px; margin-bottom: 6px;">📜 Reflexiones Anteriores:</h4>
+            <div id="listaReflexionesGuardadas" class="reflexiones-scroll-list"></div>
+          </div>
         </div>
 
+        <!-- LADO DERECHO: CONTEO DE PATRONES -->
         <div class="diario-summary-box border-neon">
           <h4>📊 Análisis de Patrones Repetidos</h4>
           <div id="listaPatronesRepetidos" class="patrones-list"></div>
@@ -184,6 +186,16 @@
       </div>
     </main>
 
+  </div>
+
+  <!-- MODAL VER REFLEXIÓN INDIVIDUAL -->
+  <div id="modalLecturaReflexion" class="modal">
+    <div class="modal-content border-neon">
+      <span class="close-btn" onclick="cerrarLecturaReflexion()">&times;</span>
+      <h3 id="modalReflexionFecha" style="color:#00e5ff;">Reflexión</h3>
+      <p id="modalReflexionTexto" style="margin-top: 12px; font-size: 13px; line-height: 1.5; color: #e2e8f0; white-space: pre-wrap;"></p>
+      <div id="modalReflexionTags" class="tags-selector" style="margin-top: 12px;"></div>
+    </div>
   </div>
 
   <!-- MODAL RESPIRACIÓN SOS -->
@@ -280,4 +292,4 @@
 
   <script src="app.js"></script>
 </body>
-</html> 
+</html>
