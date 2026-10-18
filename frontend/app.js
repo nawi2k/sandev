@@ -8,10 +8,13 @@ const BADGES = [
   { nombre: 'Giga Chad', dias: 120, img: '../assets/gigachad.png', fallback: 'https://i.ibb.co/8321019/gigachad.png' }
 ];
 
-const DIA_ACTUAL = 17;
+// OBTENER DÍA REAL DINÁMICO
+function getDiaActual() {
+  return new Date().getDate();
+}
 
 function obtenerDatosBase() {
-  const guardado = localStorage.getItem('SANDEV_OCTUBRE_2026_V3');
+  const guardado = localStorage.getItem('SANDEV_OCTUBRE_2026_V4');
   if (guardado) return JSON.parse(guardado);
 
   let arrayInicial = Array.from({length: 31}, (_, i) => {
@@ -25,16 +28,20 @@ function obtenerDatosBase() {
   arrayInicial[8] = { diaNum: 9, fecha: '09/10', estado: 'RECAIDA', horaInicio: '15:00', horaFin: '18:00', duracionMin: 180, disparador: 'Instagram', notas: 'Recaída 3 horas porno', numRecaida: 3 };
   arrayInicial[14] = { diaNum: 15, fecha: '15/10', estado: 'PEEKING', horaInicio: '22:00', horaFin: '22:30', duracionMin: 30, disparador: 'TikTok', notas: 'Peeking sin eyacular', numRecaida: null };
   arrayInicial[15] = { diaNum: 16, fecha: '16/10', estado: 'PEEKING', horaInicio: '23:00', horaFin: '23:45', duracionMin: 45, disparador: 'Instagram', notas: 'Peeking sin eyacular', numRecaida: null };
-  arrayInicial[16] = { diaNum: 17, fecha: '17/10', estado: 'RECAIDA', horaInicio: '14:40', horaFin: '15:50', duracionMin: 70, disparador: 'Instagram', notas: 'Recaída hoy 17/10', numRecaida: 4 };
+  arrayInicial[16] = { diaNum: 17, fecha: '17/10', estado: 'RECAIDA', horaInicio: '14:40', horaFin: '15:50', duracionMin: 70, disparador: 'Instagram', notas: 'Recaída ayer 17/10', numRecaida: 4 };
 
-  localStorage.setItem('SANDEV_OCTUBRE_2026_V3', JSON.stringify(arrayInicial));
+  // Guardar timestamp exacto del reset (17/10 a las 15:50 hs)
+  const resetFixed = new Date(2026, 9, 17, 15, 50, 0).getTime();
+  localStorage.setItem('SANDEV_LAST_RESET_TIME', resetFixed);
+
+  localStorage.setItem('SANDEV_OCTUBRE_2026_V4', JSON.stringify(arrayInicial));
   return arrayInicial;
 }
 
 let diasDelMes = obtenerDatosBase();
 
 function guardarEnLocalStorage() {
-  localStorage.setItem('SANDEV_OCTUBRE_2026_V3', JSON.stringify(diasDelMes));
+  localStorage.setItem('SANDEV_OCTUBRE_2026_V4', JSON.stringify(diasDelMes));
 }
 
 function toggleSideMenu() {
@@ -45,6 +52,7 @@ function toggleSideMenu() {
 function irAInicio() {
   ocultarTodasLasVistas();
   document.getElementById('viewHome').classList.add('active');
+  setTimeout(scrollToHoy, 100);
 }
 
 function abrirHistorial() {
@@ -63,8 +71,9 @@ function ocultarTodasLasVistas() {
 }
 
 function calcularRacha() {
+  const diaHoy = getDiaActual();
   let contador = 0;
-  for (let i = DIA_ACTUAL - 1; i >= 0; i--) {
+  for (let i = diaHoy - 1; i >= 0; i--) {
     if (diasDelMes[i].estado === 'LIMPIO') {
       contador++;
     } else {
@@ -93,12 +102,14 @@ function actualizarUIInsignia(racha) {
 function cargarGrilla() {
   const container = document.getElementById('gridDiaria');
   container.innerHTML = '';
+  const diaHoy = getDiaActual();
 
   diasDelMes.forEach(item => {
     const row = document.createElement('div');
-    const esHoy = item.diaNum === DIA_ACTUAL;
+    const esHoy = item.diaNum === diaHoy;
     
     row.className = `row-dia ${item.estado.toLowerCase()} ${esHoy ? 'hoy' : ''}`;
+    if (esHoy) row.id = 'rowHoyTarget';
 
     let tag = '🟢 Limpio';
     if(item.estado === 'RECAIDA') tag = `❌ Recaída (${item.horaInicio} - ${item.horaFin})`;
@@ -113,6 +124,15 @@ function cargarGrilla() {
     `;
     container.appendChild(row);
   });
+
+  setTimeout(scrollToHoy, 150);
+}
+
+function scrollToHoy() {
+  const target = document.getElementById('rowHoyTarget');
+  if (target) {
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 }
 
 function abrirSelectorRegistro() { document.getElementById('modalSelector').style.display = 'flex'; }
@@ -142,7 +162,8 @@ function guardarRegistro(e) {
   let totalEyac = 1;
   diasDelMes.forEach(d => { if (d.estado === 'RECAIDA') totalEyac++; });
 
-  const hoyObj = diasDelMes[DIA_ACTUAL - 1];
+  const diaHoy = getDiaActual();
+  const hoyObj = diasDelMes[diaHoy - 1];
   hoyObj.estado = tipo;
   hoyObj.horaInicio = hInicio;
   hoyObj.horaFin = hFin;
@@ -313,7 +334,7 @@ function renderizarListaInsignias(activeName) {
   });
 }
 
-// TEMPORIZADOR EN VIVO CORREGIDO
+// TEMPORIZADOR DE RACHA CORREGIDO
 setInterval(() => {
   let lastReset = localStorage.getItem('SANDEV_LAST_RESET_TIME');
   if (!lastReset) {
@@ -331,7 +352,7 @@ setInterval(() => {
   document.getElementById('streakTimer').innerText = `${hrs}:${mins}:${secs}`;
 }, 1000);
 
-// --- MÓDULO DE MEDITACIÓN CON SONIDO ---
+// --- MÓDULO DE MEDITACIÓN CON SONIDO CORREGIDO ---
 let medInterval = null;
 let medSegundosRestantes = 0;
 
@@ -352,9 +373,15 @@ function iniciarMeditacion() {
 
     if (medSegundosRestantes <= 0) {
       clearInterval(medInterval);
+      
+      // REPRODUCIR SONIDO PRIMERO
       reproducirSonidoFinal();
-      alert('🧘‍♂️ ¡Meditación completada! Excelente trabajo manteniendo la mente en calma.');
-      detenerMeditacion();
+
+      // CARTEL LUEGO DE UN PEQUEÑO DELAY PARA QUE SUENE AL INSTANTE
+      setTimeout(() => {
+        alert('🧘‍♂️ ¡Meditación completada! Excelente trabajo manteniendo la mente en calma.');
+        detenerMeditacion();
+      }, 300);
     }
   }, 1000);
 }

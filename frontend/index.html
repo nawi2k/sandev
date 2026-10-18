@@ -71,7 +71,7 @@
       </div>
     </main>
 
-    <!-- PANTALLA HISTORIAL (2 COLUMNAS 50/50 ESTILO PAINT) -->
+    <!-- PANTALLA HISTORIAL (2 COLUMNAS 50/50) -->
     <main id="viewHistorial" class="view-section">
       <div class="section-title">
         <h3>📜 Historial Mensual</h3>
@@ -128,14 +128,14 @@
           <span id="medTimerDisplay" class="days-num" style="font-size: 38px;">00:00</span>
         </div>
 
-        <div class="form-row" style="margin-top: 20px; width: 100%;">
-          <div>
-            <label>Duración (minutos):</label>
-            <input type="number" id="medTiempo" value="5" min="1" max="60">
+        <div class="form-row med-controls-row">
+          <div class="input-glow-group">
+            <label>⏱️ Duración (min):</label>
+            <input type="number" id="medTiempo" class="custom-neon-input" value="5" min="1" max="60">
           </div>
-          <div>
-            <label>Sonido de Fin:</label>
-            <select id="medSonido">
+          <div class="input-glow-group">
+            <label>🔔 Sonido de Fin:</label>
+            <select id="medSonido" class="custom-neon-select">
               <option value="cuenco">🔔 Cuenco Tibetano</option>
               <option value="campana">🛎️ Campana Zen</option>
               <option value="naturaleza">🌿 Sonido Suave</option>
@@ -143,8 +143,8 @@
           </div>
         </div>
 
-        <button id="btnStartMed" class="btn-main" style="margin-top: 20px;" onclick="iniciarMeditacion()">▶️ Iniciar Meditación</button>
-        <button id="btnStopMed" class="btn-action btn-danger" style="margin-top: 20px; display: none; width: 100%;" onclick="detenerMeditacion()">⏹️ Detener</button>
+        <button id="btnStartMed" class="btn-main" style="margin-top: 22px;" onclick="iniciarMeditacion()">▶️ Iniciar Meditación</button>
+        <button id="btnStopMed" class="btn-action btn-danger" style="margin-top: 22px; display: none; width: 100%;" onclick="detenerMeditacion()">⏹️ Detener</button>
       </div>
     </main>
 
@@ -173,16 +173,16 @@
         <div class="form-row">
           <div>
             <label>Hora Inicio:</label>
-            <input type="time" id="horaInicio" required>
+            <input type="time" id="horaInicio" required class="custom-neon-input">
           </div>
           <div>
             <label>Hora Fin:</label>
-            <input type="time" id="horaFin" required>
+            <input type="time" id="horaFin" required class="custom-neon-input">
           </div>
         </div>
 
         <label>Disparador / Trigger:</label>
-        <select id="disparadorInput" required>
+        <select id="disparadorInput" required class="custom-neon-select">
           <option value="Instagram">Instagram</option>
           <option value="Aburrimiento">Aburrimiento</option>
           <option value="Estrés / Cansancio">Estrés / Cansancio</option>
@@ -191,7 +191,7 @@
         </select>
 
         <label>¿Qué pasó antes? (Notas):</label>
-        <textarea id="notasInput" rows="2" placeholder="Ej: Volví de entrenar y abrí IG..." required></textarea>
+        <textarea id="notasInput" rows="2" class="custom-neon-input" placeholder="Ej: Volví de entrenar y abrí IG..." required></textarea>
 
         <button type="submit" class="btn-submit">Guardar Evento</button>
       </form>
