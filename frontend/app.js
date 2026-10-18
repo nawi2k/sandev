@@ -13,7 +13,7 @@ function getDiaActual() {
 }
 
 function obtenerDatosBase() {
-  const guardado = localStorage.getItem('SANDEV_OCTUBRE_2026_V7');
+  const guardado = localStorage.getItem('SANDEV_OCTUBRE_2026_V8');
   if (guardado) return JSON.parse(guardado);
 
   let arrayInicial = Array.from({length: 31}, (_, i) => {
@@ -31,23 +31,44 @@ function obtenerDatosBase() {
 
   const resetFixed = new Date(2026, 9, 17, 15, 50, 0).getTime();
   localStorage.setItem('SANDEV_LAST_RESET_TIME', resetFixed);
-  localStorage.setItem('SANDEV_OCTUBRE_2026_V7', JSON.stringify(arrayInicial));
+  localStorage.setItem('SANDEV_OCTUBRE_2026_V8', JSON.stringify(arrayInicial));
   return arrayInicial;
 }
 
 let diasDelMes = obtenerDatosBase();
 let userXP = parseInt(localStorage.getItem('SANDEV_USER_XP')) || 120;
-let listaDiario = JSON.parse(localStorage.getItem('SANDEV_DIARIO_LOGS')) || [
-  { id: 1, fecha: '16/10', texto: 'Me acosté tarde y estuve #sobrepensar bastante.', tags: ['sobrepensar', 'desvelo'] },
-  { id: 2, fecha: '17/10', texto: 'Tuve #ganas de ver un poco por #aburrimiento en la tarde.', tags: ['ganas de ver un poco', 'aburrimiento'] }
-];
-let availableTags = JSON.parse(localStorage.getItem('SANDEV_AVAILABLE_TAGS')) || ['sobrepensar', 'ganas de ver un poco', 'aburrimiento', 'me siento mal', 'desvelo'];
+
+// ESTRUCTURA DE DIARIO AGRUPADO
+let listaDiarioGrouped = JSON.parse(localStorage.getItem('SANDEV_DIARIO_LOGS_V8')) || {
+  "18/10": {
+    diaNum: 18,
+    entradas: [
+      { hora: '14:00', texto: 'hola', tags: [] },
+      { hora: '15:30', texto: 'me acoste a las 3 am y me...', tags: ['desvelo'] },
+      { hora: '17:10', texto: 'tengo ganas de #ver porno', tags: ['ver'] }
+    ]
+  },
+  "17/10": {
+    diaNum: 17,
+    entradas: [
+      { hora: '18:00', texto: 'Tuve ganas de ver un poco por aburrimiento', tags: ['ganas de ver un poco', 'aburrimiento'] }
+    ]
+  },
+  "16/10": {
+    diaNum: 16,
+    entradas: [
+      { hora: '23:00', texto: 'Me acosté tarde y estuve sobrepensando', tags: ['sobrepensar'] }
+    ]
+  }
+};
+
+let availableTags = JSON.parse(localStorage.getItem('SANDEV_AVAILABLE_TAGS')) || ['sobrepensar', 'ganas de ver un poco', 'aburrimiento', 'me siento mal', 'desvelo', 'ver'];
 let selectedTags = [];
 
 function guardarEnLocalStorage() {
-  localStorage.setItem('SANDEV_OCTUBRE_2026_V7', JSON.stringify(diasDelMes));
+  localStorage.setItem('SANDEV_OCTUBRE_2026_V8', JSON.stringify(diasDelMes));
   localStorage.setItem('SANDEV_USER_XP', userXP);
-  localStorage.setItem('SANDEV_DIARIO_LOGS', JSON.stringify(listaDiario));
+  localStorage.setItem('SANDEV_DIARIO_LOGS_V8', JSON.stringify(listaDiarioGrouped));
   localStorage.setItem('SANDEV_AVAILABLE_TAGS', JSON.stringify(availableTags));
 }
 
@@ -206,7 +227,7 @@ function actualizarUIBreathing() {
   else if(sosStep === 3) { circle.classList.add('pausa'); actionTxt.innerText = 'PAUSA 💚'; }
 }
 
-// DIARIO REFLEXIVO INTELIGENTE
+// DIARIO REFLEXIVO REESTRUCTURADO Y ORDENADO
 function renderizarTagsSelector() {
   const container = document.getElementById('containerTagsSelector');
   container.innerHTML = '';
@@ -230,25 +251,29 @@ function guardarEntradaDiario() {
   const txt = document.getElementById('textoDiario').value.trim();
   if(!txt && selectedTags.length === 0) return alert('Escribe algo o selecciona una etiqueta.');
 
-  // EXTRAER HASHTAGS AUTOMÁTICOS DEL TEXTO
+  // Extraer hashtags automáticos
   const regexHashtags = /#([a-zA-Z0-9_áéíóúÁÉÍÓÚñÑ-]+)/g;
   let match;
   while ((match = regexHashtags.exec(txt)) !== null) {
     const tagEncontrado = match[1].toLowerCase();
-    if (!selectedTags.includes(tagEncontrado)) {
-      selectedTags.push(tagEncontrado);
-    }
-    if (!availableTags.includes(tagEncontrado)) {
-      availableTags.push(tagEncontrado);
-    }
+    if (!selectedTags.includes(tagEncontrado)) selectedTags.push(tagEncontrado);
+    if (!availableTags.includes(tagEncontrado)) availableTags.push(tagEncontrado);
   }
 
   const diaHoy = getDiaActual();
   const fechaStr = `${String(diaHoy).padStart(2,'0')}/10`;
+  const ahora = new Date();
+  const horaStr = `${String(ahora.getHours()).padStart(2,'0')}:${String(ahora.getMinutes()).padStart(2,'0')}`;
 
-  listaDiario.unshift({
-    id: Date.now(),
-    fecha: fechaStr,
+  if (!listaDiarioGrouped[fechaStr]) {
+    listaDiarioGrouped[fechaStr] = {
+      diaNum: diaHoy,
+      entradas: []
+    };
+  }
+
+  listaDiarioGrouped[fechaStr].entradas.push({
+    hora: horaStr,
     texto: txt,
     tags: [...selectedTags]
   });
@@ -268,38 +293,65 @@ function renderizarHistorialReflexiones() {
   const container = document.getElementById('listaReflexionesGuardadas');
   container.innerHTML = '';
 
-  if (listaDiario.length === 0) {
+  // Ordenar fechas de MAYOR A MENOR (Descendente)
+  const fechasOrdenadas = Object.keys(listaDiarioGrouped).sort((a, b) => {
+    return listaDiarioGrouped[b].diaNum - listaDiarioGrouped[a].diaNum;
+  });
+
+  if (fechasOrdenadas.length === 0) {
     container.innerHTML = '<p style="color:#64748b; font-size:11px;">No hay reflexiones guardadas.</p>';
     return;
   }
 
-  listaDiario.forEach(item => {
+  fechasOrdenadas.forEach(fecha => {
+    const grupo = listaDiarioGrouped[fecha];
+    const cant = grupo.entradas.length;
+    const ultimaEntrada = grupo.entradas[grupo.entradas.length - 1];
+    const preview = ultimaEntrada.texto ? (ultimaEntrada.texto.length > 20 ? ultimaEntrada.texto.substring(0, 20) + '...' : ultimaEntrada.texto) : 'Sin texto';
+
     const row = document.createElement('div');
     row.className = 'item-reflexion-row';
-    const preview = item.texto ? (item.texto.length > 25 ? item.texto.substring(0, 25) + '...' : item.texto) : 'Sin texto';
     
     row.innerHTML = `
-      <span><strong>${item.fecha}</strong> - ${preview}</span>
-      <button class="btn-leer-note" onclick="verReflexionDetalle(${item.id})">👁️ Leer</button>
+      <span><strong>${fecha}</strong> <small style="color:#00e5ff;">(${cant} ${cant === 1 ? 'reflexión' : 'reflexiones'})</small> - ${preview}</span>
+      <button class="btn-leer-note" onclick="verReflexionDetalle('${fecha}')">👁️ Leer</button>
     `;
     container.appendChild(row);
   });
 }
 
-function verReflexionDetalle(id) {
-  const item = listaDiario.find(x => x.id === id);
-  if(!item) return;
+function verReflexionDetalle(fecha) {
+  const grupo = listaDiarioGrouped[fecha];
+  if(!grupo || !grupo.entradas.length) return;
 
-  document.getElementById('modalReflexionFecha').innerText = `Reflexión del ${item.fecha}`;
-  document.getElementById('modalReflexionTexto').innerText = item.texto || 'Sin texto escrito.';
+  document.getElementById('modalReflexionFecha').innerText = `Reflexiones del ${fecha}`;
   
+  const textoModal = document.getElementById('modalReflexionTexto');
   const tagsCont = document.getElementById('modalReflexionTags');
+  
+  textoModal.innerHTML = '';
   tagsCont.innerHTML = '';
-  if(item.tags && item.tags.length) {
-    item.tags.forEach(t => {
-      tagsCont.innerHTML += `<span class="tag-chip active">#${t}</span>`;
-    });
-  }
+
+  let allTags = new Set();
+
+  grupo.entradas.forEach((ent, idx) => {
+    const block = document.createElement('div');
+    block.style.marginBottom = '12px';
+    block.style.paddingBottom = '8px';
+    block.style.borderBottom = idx < grupo.entradas.length - 1 ? '1px solid #1e293b' : 'none';
+    
+    block.innerHTML = `
+      <div style="color:#00e5ff; font-weight:bold; font-size:11px;">Reflexión #${idx + 1} (${ent.hora || 'Hs'}):</div>
+      <p style="margin-top:2px; color:#e2e8f0;">${ent.texto || 'Sin texto'}</p>
+    `;
+    textoModal.appendChild(block);
+
+    if(ent.tags) ent.tags.forEach(t => allTags.add(t));
+  });
+
+  allTags.forEach(t => {
+    tagsCont.innerHTML += `<span class="tag-chip active">#${t}</span>`;
+  });
 
   document.getElementById('modalLecturaReflexion').style.display = 'flex';
 }
@@ -313,12 +365,14 @@ function renderizarPatronesDiario() {
   container.innerHTML = '';
 
   let conteo = {};
-  listaDiario.forEach(log => {
-    if(log.tags) {
-      log.tags.forEach(t => {
-        conteo[t] = (conteo[t] || 0) + 1;
-      });
-    }
+  Object.values(listaDiarioGrouped).forEach(grupo => {
+    grupo.entradas.forEach(ent => {
+      if(ent.tags) {
+        ent.tags.forEach(t => {
+          conteo[t] = (conteo[t] || 0) + 1;
+        });
+      }
+    });
   });
 
   const keys = Object.keys(conteo);
